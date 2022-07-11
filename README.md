@@ -20,7 +20,7 @@ go install github.com/fusakla/autograf@latest
 
 ## How to use?
 
-```
+```bash
 ./autograf generate --help
 Usage: autograf generate --metrics-file=METRICS-FILE --prometheus-url=PROMETHEUS-URL
 
@@ -51,12 +51,12 @@ curl -q http://demo.robustperception.io:9090/metrics | ./autograf generate --met
 ### Loading data from live Prometheus instance
 Print Grafana dashboard JSON for all metrics matching selector `{instance="demo.do.prometheus.io:9090",
 job="prometheus"}` form the configured Prometheus instance.
-```
+```bash
 autograf generate --prometheus-url http://demo.robustperception.io:9090 --selector '{instance="demo.do.prometheus.io:9090", job="prometheus"}'
 ```
 
 ### Uploading directly to Grafana
-```
+```bash
 GRAFANA_TOKEN="xxx" autograf generate --prometheus-url http://demo.robustperception.io:9090 --selector '{instance="demo.do.prometheus.io:9090", job="prometheus"}' --grafana-url https://foo.bar --grafana-folder test
 Dashboard successfully generated, see https://grafana.foo.bar/d/ygUo8se7k/autograf-dashboard
 ```
