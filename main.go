@@ -65,6 +65,9 @@ func (c *Command) updateFromConfig(conf config) {
 	}
 	if c.GrafanaFolder == "" {
 		c.GrafanaFolder = conf.GrafanaFolder
+		if c.GrafanaFolder == "" {
+			c.GrafanaFolder = "Autograf"
+		}
 	}
 	if c.GrafanaDashboardName == "" {
 		c.GrafanaDashboardName = conf.GrafanaDashboardName
