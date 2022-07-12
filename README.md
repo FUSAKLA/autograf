@@ -9,8 +9,7 @@ download](https://img.shields.io/github/downloads/fusakla/autograf/total?label=P
 
 **Dynamically generate Grafana dashboard based on Prometheus metrics**
 
-
-![](./autograf.excalidraw.png)
+<p align="center"><img src="./autograf.excalidraw.png"></p>
 
 Have you ever needed to debug issues and ended up querying Prometheus for `group({app="foo"}) by (__name__)` to find out
 what metrics the app exposes and than querying all of them fo find anything suspicious? Or do you often encounter apps
