@@ -2,7 +2,7 @@
 [![Go Report
 Card](https://goreportcard.com/badge/github.com/fusakla/autograf)](https://goreportcard.com/report/github.com/fusakla/autograf)
 [![GitHub actions
-CI](https://img.shields.io/github/workflow/status/fusakla/autograf/Go/master)](https://github.com/FUSAKLA/autograf/actions?query=branch%3Amain)
+CI](https://img.shields.io/github/workflow/status/fusakla/autograf/Go/main)](https://github.com/FUSAKLA/autograf/actions?query=branch%3Amain)
 [![Docker Pulls](https://img.shields.io/docker/pulls/fusakla/autograf)](https://hub.docker.com/r/fusakla/autograf)
 [![GitHub binaries
 download](https://img.shields.io/github/downloads/fusakla/autograf/total?label=Prebuilt%20binaries%20downloads)](https://github.com/FUSAKLA/autograf/releases/latest)
