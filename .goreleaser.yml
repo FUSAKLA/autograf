@@ -1,0 +1,39 @@
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - main: ./
+    binary: autograf
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - 386
+
+source:
+  enabled: true
+
+dockers:
+  - goos: linux
+    goarch: amd64
+    image_templates:
+      - fusakla/autograf:{{ .Tag }}
+      - fusakla/autograf:v{{ .Major }}.{{ .Minor }}
+      - fusakla/autograf:v{{ .Major }}
+      - fusakla/autograf:latest
+    build_flag_templates:
+      - --pull
+      # Labels according to opencontainers label schema https://github.com/opencontainers/image-spec/blob/master/annotations.md
+      - --label=org.opencontainers.image.created={{.Date}}
+      - --label=org.opencontainers.image.revision={{.FullCommit}}
+      - --label=org.opencontainers.image.version={{.Version}}
+
+      - --label=org.opencontainers.image.title={{.ProjectName}}
+      - --label=org.opencontainers.image.description=Tool to generate Grafana dashboard form Prometheus metrics.
+      - --label=org.opencontainers.image.authors=autograf@fusakla.cz
+      - --label=org.opencontainers.image.url={{.GitURL}}
+      - --label=org.opencontainers.image.documentation={{.GitURL}}
+      - --label=org.opencontainers.image.source={{replace .GitURL ".git" "" }}

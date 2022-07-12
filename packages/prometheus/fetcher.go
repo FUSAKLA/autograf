@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -15,8 +14,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func NewClient(logger logrus.FieldLogger, prometheusURL *url.URL, transport http.RoundTripper) (*Client, error) {
-	cfg := api.Config{Address: prometheusURL.String()}
+func NewClient(logger logrus.FieldLogger, prometheusURL string, transport http.RoundTripper) (*Client, error) {
+	cfg := api.Config{Address: prometheusURL}
 	if transport != nil {
 		cfg.RoundTripper = transport
 	}

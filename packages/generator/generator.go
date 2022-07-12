@@ -2,21 +2,11 @@ package generator
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/K-Phoen/grabana/dashboard"
 	"github.com/fusakla/autograf/packages/prometheus"
 )
-
-func mapSortedKeys(m map[string]prometheus.Metric) []string {
-	keys := []string{}
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return keys
-}
 
 func newTree(prefix string, level int) *metricsTree {
 	return &metricsTree{
@@ -102,9 +92,9 @@ func groupMetrics(metrics map[string]prometheus.Metric) map[string][]*prometheus
 	return tree.metricGroups()
 }
 
-func Generate(name, datasource, selector string, metrics map[string]prometheus.Metric) (*dashboard.Builder, error) {
+func Generate(name, datasource, selector string, filerVariables []string, metrics map[string]prometheus.Metric) (*dashboard.Builder, error) {
 	metricGroups := groupMetrics(metrics)
-	dashboard, err := newDashboard(name, datasource, selector, metricGroups)
+	dashboard, err := newDashboard(name, datasource, selector, filerVariables, metricGroups)
 	if err != nil {
 		return nil, err
 	}

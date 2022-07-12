@@ -2,6 +2,8 @@
 **Dynamically generate Grafana dashboard based on Prometheus metrics**
 
 
+![](./autograf.excalidraw.png)
+
 Have you ever needed to debug issues and ended up querying Prometheus for `group({app="foo"}) by (__name__)` to find out
 what metrics the app exposes and than querying all of them fo find anything suspicious? Or do you often encounter apps
 that do not have any official dashboard?
@@ -62,7 +64,21 @@ Dashboard successfully generated, see https://grafana.foo.bar/d/ygUo8se7k/autogr
 ```
 
 ## Configuration
-TODO
+If you do not want to set all the flags again and again you can use a config file. By default autograf looks for it in
+`~/.autograf.json` but can be changed using the `AUTOGRAF_CONFIG` env variable.
+
+### Config file syntax
+```json
+{
+    "prometheus_url": "http://demo.robustperception.io:9090",
+    "grafana_url": "https://grafana.foo.bar",
+    "grafana_dashboard_name": "Autograf",
+    "grafana_folder": "FUSAKLAS garbage",
+    "grafana_datasource": "Prometheus",
+    "grafana_token": "xxx",
+    "open_browser": true
+}
+```
 
 ## Future ideas
 - Could be a Grafana app plugin and user could just go to `https://grafana.foo.bar/autograf?selector={foo="bar"}` and
