@@ -22,6 +22,8 @@ Autograf generates Grafana dashboard directly form `/metrics` or based on a metr
 metric has own panel optimized for its type and those are grouped based on metric namespacing. If you want Autograf can
 event upload the dashboard Right your to a Grafana for you!
 
+[autograf-2.webm](https://user-images.githubusercontent.com/6112562/178546235-7f9f815d-e843-4b0c-84dc-4fba2270eedc.webm)
+
 ## Installation
 Using [prebuilt binaries](https://github.com/FUSAKLA/autograf/releases/latest), [Docker
 image](https://hub.docker.com/r/fusakla/autograf) of build it yourself.
