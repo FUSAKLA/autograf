@@ -1,8 +1,11 @@
 # Autograf
-[![Go Report Card](https://goreportcard.com/badge/github.com/fusakla/autograf)](https://goreportcard.com/report/github.com/fusakla/autograf)
-[![GitHub actions CI](https://img.shields.io/github/workflow/status/fusakla/autograf/Go/master)](https://github.com/FUSAKLA/autograf/actions?query=branch%3Amain)
+[![Go Report
+Card](https://goreportcard.com/badge/github.com/fusakla/autograf)](https://goreportcard.com/report/github.com/fusakla/autograf)
+[![GitHub actions
+CI](https://img.shields.io/github/workflow/status/fusakla/autograf/Go/master)](https://github.com/FUSAKLA/autograf/actions?query=branch%3Amain)
 [![Docker Pulls](https://img.shields.io/docker/pulls/fusakla/autograf)](https://hub.docker.com/r/fusakla/autograf)
-[![GitHub binaries download](https://img.shields.io/github/downloads/fusakla/autograf/total?label=Prebuilt%20binaries%20downloads)](https://github.com/FUSAKLA/autograf/releases/latest)
+[![GitHub binaries
+download](https://img.shields.io/github/downloads/fusakla/autograf/total?label=Prebuilt%20binaries%20downloads)](https://github.com/FUSAKLA/autograf/releases/latest)
 
 **Dynamically generate Grafana dashboard based on Prometheus metrics**
 
@@ -16,13 +19,13 @@ that do not have any official dashboard?
 _Well I have a good news for you, Autograf have you covered!_ :tada:
 
 ## How does it work?
-Autograf looks for all the metrics exposed by app on the `/metrics` endpoint or loads them from Prometheus and than
-based on its metadata generated Grafana dashboard for you with panel for each metric grouped into rows based on their
-namespacing. If you want Autograf can event upload the dashboard Right your to a Grafana for you!
+Autograf generates Grafana dashboard directly form `/metrics` or based on a metrics matching provided selector. Each
+metric has own panel optimized for its type and those are grouped based on metric namespacing. If you want Autograf can
+event upload the dashboard Right your to a Grafana for you!
 
 ## Installation
-Using [prebuilt binaries](https://github.com/FUSAKLA/autograf/releases/latest),
-[Docker image](https://hub.docker.com/r/fusakla/autograf) of build it yourself.
+Using [prebuilt binaries](https://github.com/FUSAKLA/autograf/releases/latest), [Docker
+image](https://hub.docker.com/r/fusakla/autograf) of build it yourself.
 
 ```bash
 go install github.com/fusakla/autograf@latest
