@@ -18,9 +18,9 @@ that do not have any official dashboard?
 _Well I have a good news for you, Autograf have you covered!_ :tada:
 
 ## How does it work?
-Autograf generates Grafana dashboard directly form `/metrics` or based on a metrics matching provided selector. Each
+Autograf generates Grafana dashboard directly from `/metrics` or based on a metrics matching provided selector. Each
 metric has own panel optimized for its type and those are grouped based on metric namespacing. If you want Autograf can
-event upload the dashboard Right your to a Grafana for you!
+even upload the dashboard Right your to a Grafana for you!
 
 [autograf-2.webm](https://user-images.githubusercontent.com/6112562/178546235-7f9f815d-e843-4b0c-84dc-4fba2270eedc.webm)
 
@@ -42,7 +42,7 @@ make build
 ./autograf --help
 Usage: autograf
 
-Autograf generates Grafana dashboard form Prometheus metrics either read form a /metrics endpoint or queried form live Prometheus instance. The dashboard JSON is by default printed to stdout. But can also upload
+Autograf generates Grafana dashboard from Prometheus metrics either read from a /metrics endpoint or queried from live Prometheus instance. The dashboard JSON is by default printed to stdout. But can also upload
 the dashboard directly to your Grafana instance. You can configure most of the flags using config file. See the docs.
 
 Example from /metrics:
@@ -75,7 +75,7 @@ curl -q http://demo.robustperception.io:9090/metrics | ./autograf --metrics-file
 
 ### Loading data from live Prometheus instance
 Print Grafana dashboard JSON for all metrics matching selector `{instance="demo.do.prometheus.io:9090",
-job="prometheus"}` form the configured Prometheus instance.
+job="prometheus"}` from the configured Prometheus instance.
 ```bash
 autograf --prometheus-url http://demo.robustperception.io:9090 --selector '{instance="demo.do.prometheus.io:9090", job="prometheus"}'
 ```
@@ -114,4 +114,4 @@ autograf --selector {app='foo'}
   the dashboard would show up right in the Grafana itself.
 - Allow customizing the graph visualization using some tags in metric HELP(panel type, aggregations, units, colors,
   description, ...)
-- Add custom visuals for well known metrics 
+- Add custom visuals for well known metrics
