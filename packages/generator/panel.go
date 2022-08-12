@@ -73,6 +73,6 @@ func newPanel(dataSource string, selector string, metric prometheus.Metric) row.
 	case "info":
 		return newInfoPanel(dataSource, selector, metric)
 	}
-	metric.Comment = fmt.Sprintf("WARNING: Unknown metric type %s!\n%s", metric.MetricType, metric.Comment)
+	metric.Help = fmt.Sprintf("WARNING: Unknown metric type %s!\n\n%s", metric.MetricType, metric.Help)
 	return newTimeSeriesPanel(dataSource, selector, metric)
 }
