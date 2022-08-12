@@ -25,14 +25,21 @@ func newRow(dataSource string, selector string, name string, metrics []*promethe
 }
 
 func selectorWithVariablesFilter(selector string, filerVariables []string) string {
-	new := strings.TrimSuffix(selector, "}")
-	for _, v := range filerVariables {
-		new += fmt.Sprintf(",%s=~'$%s'", v, v)
+	new := strings.TrimSuffix(selector, "}") + ","
+	if selector == "" {
+		new = "{"
 	}
-	return new + "}"
+	filters := make([]string, len(filerVariables))
+	for i, v := range filerVariables {
+		filters[i] = fmt.Sprintf("%s=~'$%s'", v, v)
+	}
+	return new + strings.Join(filters, ",") + "}"
 }
 
 func labelVariable(datasourceName, selector, name string) dashboard.Option {
+	if selector == "" {
+		selector = "up"
+	}
 	return dashboard.VariableAsQuery(
 		name,
 		query.DataSource(datasourceName),
