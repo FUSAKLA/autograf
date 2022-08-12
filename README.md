@@ -56,10 +56,10 @@ Example from Prometheus query:
 Flags:
   -h, --help                                       Show context-sensitive help.
       --debug                                      Enable debug logging
-      --metrics-file=STRING                        File containing the metrics exposed by app (will read stdin if se to - )
+  -f, --metrics-file=STRING                        File containing the metrics exposed by app (will read stdin if se to - )
       --open-metrics-format                        Metrics data are in the application/openmetrics-text format.
-      --prometheus-url=STRING                      URL of Prometheus instance to fetch the metrics from.
-      --selector=STRING                            Selector to filter metrics from the Prometheus instance.
+  -p, --prometheus-url=STRING                      URL of Prometheus instance to fetch the metrics from.
+  -s, --selector=STRING                            Selector to filter metrics from the Prometheus instance.
       --grafana-variables=GRAFANA-VARIABLES,...    Labels used as a variables for filtering in dashboard
       --grafana-url=STRING                         URL of Grafana to upload the dashboard to, if not specified, dashboard JSON is printed to stdout
       --grafana-folder=STRING                      Name of target Grafana folder

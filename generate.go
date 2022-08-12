@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"os/exec"
 	"runtime"
 	"time"
@@ -29,7 +29,7 @@ func openInBrowser(url string) error {
 func (r *Command) Run(ctx *Context) error {
 	var metrics map[string]prometheus.Metric
 	if r.MetricsFile != "" {
-		data, err := ioutil.ReadFile(r.MetricsFile)
+		data, err := os.ReadFile(r.MetricsFile)
 		if err != nil {
 			return err
 		}

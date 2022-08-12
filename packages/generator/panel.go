@@ -7,7 +7,6 @@ import (
 	"github.com/K-Phoen/grabana/row"
 	"github.com/K-Phoen/grabana/table"
 	grabana_prometheus "github.com/K-Phoen/grabana/target/prometheus"
-	"github.com/K-Phoen/grabana/text"
 	"github.com/K-Phoen/grabana/timeseries"
 	"github.com/K-Phoen/grabana/timeseries/axis"
 	"github.com/fusakla/autograf/packages/prometheus"
@@ -74,5 +73,6 @@ func newPanel(dataSource string, selector string, metric prometheus.Metric) row.
 	case "info":
 		return newInfoPanel(dataSource, selector, metric)
 	}
-	return row.WithText("", text.HTML(fmt.Sprintf("unknown type %s of metric %s", metric.MetricType, metric.Name)))
+	metric.Help = fmt.Sprintf("WARNING: Unknown metric type %s!\n\n%s", metric.MetricType, metric.Help)
+	return newTimeSeriesPanel(dataSource, selector, metric)
 }

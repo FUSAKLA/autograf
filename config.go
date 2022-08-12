@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path"
 
@@ -33,7 +32,7 @@ func loadConfig(logger logrus.FieldLogger) config {
 		}
 		configFilePath = path.Join(home, ".autograf.json")
 	}
-	data, err := ioutil.ReadFile(configFilePath)
+	data, err := os.ReadFile(configFilePath)
 	if err != nil {
 		return c
 	}
