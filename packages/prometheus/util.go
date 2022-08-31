@@ -16,14 +16,14 @@ func guessMetricType(metricName string) MetricType {
 	return MetricTypeGauge
 }
 
-func guessMetricUnit(metricName string) string {
+func guessMetricUnit(metricName string) MetricUnit {
 	if strings.Contains(metricName, "_seconds") {
-		return "s"
+		return MetricUnitSeconds
 	}
 	if strings.Contains(metricName, "_bytes") {
-		return "decbytes"
+		return MetricUnitsBytes
 	}
-	return "none"
+	return MetricUnitNone
 }
 
 func guessMetricMetadata(metricName string) []v1.Metadata {
@@ -31,7 +31,7 @@ func guessMetricMetadata(metricName string) []v1.Metadata {
 		{
 			Type: v1.MetricType(guessMetricType(metricName)),
 			Help: "",
-			Unit: guessMetricUnit(metricName),
+			Unit: string(guessMetricUnit(metricName)),
 		},
 	}
 }

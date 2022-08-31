@@ -69,6 +69,27 @@ func (c *Client) queryMetricsForSelector(ctx context.Context, selector string) (
 	}
 }
 
+func dropCreatedMetrics(metrics map[string]Metric) {
+	for k := range metrics {
+		metricName := strings.TrimSuffix(k, "_created")
+		if k == metricName {
+			continue
+		}
+		if _, ok := metrics[metricName]; ok {
+			delete(metrics, k)
+			continue
+		}
+		if _, ok := metrics[metricName+"_total"]; ok {
+			delete(metrics, k)
+			continue
+		}
+		if _, ok := metrics[metricName+"_count"]; ok {
+			delete(metrics, k)
+			continue
+		}
+	}
+}
+
 func (c *Client) MetricsForSelector(ctx context.Context, selector string) (map[string]Metric, error) {
 	samples, err := c.queryMetricsForSelector(ctx, selector)
 	if err != nil {
@@ -96,7 +117,7 @@ func (c *Client) MetricsForSelector(ctx context.Context, selector string) (map[s
 			Name:       metricName,
 			MetricType: MetricType(metricMetadata[0].Type),
 			Help:       metricMetadata[0].Help,
-			Unit:       metricMetadata[0].Unit,
+			Unit:       MetricUnit(metricMetadata[0].Unit),
 		}
 		if m.Unit == "" {
 			m.Unit = guessMetricUnit(metricName)
@@ -109,5 +130,6 @@ func (c *Client) MetricsForSelector(ctx context.Context, selector string) (map[s
 		}
 		metrics[metricName] = m
 	}
+	dropCreatedMetrics(metrics)
 	return metrics, nil
 }

@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - Build binaries for darwin and windows (not tested, please do report if you encounter any issues!)
 ### Changed
  - Upgraded to Go 1.19
+ - Ignore OpenMetrics `_created` metrics (for more info see [this](https://github.com/prometheus/prometheus/issues/6541) issue)
+ - Handle metrics ending with `_time|_time_seconds|_timestamp|_timestamp_seconds` as timestamps in seconds and substract them from `time()`
 
 ## [1.1.0] - 2022-08-12
 ### Added

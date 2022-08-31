@@ -49,7 +49,7 @@ func ParseMetricsText(text []byte, openMetrics bool) (map[string]Metric, error) 
 			currentMetric.Help = string(mHelp)
 		case textparse.EntryUnit:
 			_, mUnit := p.Unit()
-			currentMetric.Unit = string(mUnit)
+			currentMetric.Unit = MetricUnit(mUnit)
 		default:
 		}
 	}

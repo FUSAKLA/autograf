@@ -2,6 +2,7 @@ package generator
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/K-Phoen/grabana/heatmap"
 	"github.com/K-Phoen/grabana/row"
@@ -12,16 +13,22 @@ import (
 	"github.com/fusakla/autograf/packages/prometheus"
 )
 
+var timeMetricsRegexp = regexp.MustCompile(`.+(_time|_time_seconds|_timestamp|_timestamp_seconds)$`)
+
 func newTimeSeriesPanel(dataSource, selector string, metric prometheus.Metric) row.Option {
 	query := fmt.Sprintf("%s%s", metric.Name, selector)
-	if metric.MetricType == "counter" {
+	if metric.MetricType == prometheus.MetricTypeCounter {
 		query = fmt.Sprintf("rate(%s%s[3m])", metric.Name, selector)
+	}
+	if timeMetricsRegexp.MatchString(metric.Name) {
+		query = "time() - " + query
+		metric.Unit = prometheus.MetricUnitSeconds
 	}
 	return row.WithTimeSeries(
 		metric.Name,
 		timeseries.Description(metric.Help),
 		timeseries.Axis(
-			axis.Unit(metric.Unit),
+			axis.Unit(string(metric.Unit)),
 		),
 		timeseries.DataSource(dataSource),
 		timeseries.WithPrometheusTarget(

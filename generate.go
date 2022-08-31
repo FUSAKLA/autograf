@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/fusakla/autograf/packages/generator"
@@ -44,7 +45,7 @@ func (r *Command) Run(ctx *Context) error {
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 		defer cancel()
-		metrics, err = client.MetricsForSelector(ctx, r.Selector)
+		metrics, err = client.MetricsForSelector(ctx, strings.TrimSpace(r.Selector))
 		if err != nil {
 			return err
 		}
@@ -67,7 +68,7 @@ func (r *Command) Run(ctx *Context) error {
 		}
 		fmt.Println("Dashboard successfully generated, see " + dashboardUrl)
 		if r.OpenBrowser {
-			if err := openInBrowser(dashboardUrl); err != nil  {
+			if err := openInBrowser(dashboardUrl); err != nil {
 				return err
 			}
 		}

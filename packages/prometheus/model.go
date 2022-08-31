@@ -15,11 +15,19 @@ const (
 	MetricTypeUnknown        MetricType = "unknown"
 )
 
+type MetricUnit string
+
+const (
+	MetricUnitNone    MetricUnit = "none"
+	MetricUnitSeconds MetricUnit = "s"
+	MetricUnitsBytes  MetricUnit = "decbytes"
+)
+
 type Metric struct {
 	MetricType MetricType
 	Name       string
 	Help       string
-	Unit       string
+	Unit       MetricUnit
 	Comment    string
 }
 
