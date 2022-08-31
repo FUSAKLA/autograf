@@ -28,3 +28,10 @@ jobs:
 
       - name: E2E test
         run: make e2e-test
+      
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          distribution: goreleaser
+          version: latest
+          args: build --snapshot --rm-dist
