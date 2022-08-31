@@ -14,8 +14,7 @@ func UpsertDashboard(ctx context.Context, grafanaURL string, grafanaToken string
 	if err != nil {
 		return "", err
 	}
-	_, _ = cli.UpsertDashboard(ctx, gFolder, *dashboard)
-	gDashboard, err := cli.GetDashboardByTitle(ctx, dashboard.Internal().Title)
+	gDashboard, err := cli.UpsertDashboard(ctx, gFolder, *dashboard)
 	if err != nil {
 		return "", err
 	}
