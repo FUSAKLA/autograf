@@ -5,7 +5,7 @@ go 1.19
 require github.com/alecthomas/kong v0.6.1
 
 require (
-	github.com/K-Phoen/sdk v0.11.0 // indirect
+	github.com/K-Phoen/sdk v0.12.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/gosimple/slug v1.12.0 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
@@ -18,7 +18,7 @@ require (
 )
 
 require (
-	github.com/K-Phoen/grabana v0.21.9
+	github.com/K-Phoen/grabana v0.21.12
 	github.com/prometheus/client_golang v1.12.2
 	github.com/prometheus/common v0.35.0
 	github.com/prometheus/prometheus v0.36.2

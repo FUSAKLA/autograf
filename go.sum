@@ -35,8 +35,12 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/K-Phoen/grabana v0.21.9 h1:sL0/9985lZZVfbXTyWQcxrKyNRVSe98KUc8BiTrS8V0=
 github.com/K-Phoen/grabana v0.21.9/go.mod h1:sfiy/xyVZaEV6B8ePS621pLQKxy37rWMYEsfgM1qt/k=
+github.com/K-Phoen/grabana v0.21.12 h1:BZ9s7n/jD8gzoPeC7v7RFrnl1UB31l7G5h6mJmxckrw=
+github.com/K-Phoen/grabana v0.21.12/go.mod h1:kL0drTF9oZu0r24fYoiGYJrxP+jBJKIcbR66TE5gKEU=
 github.com/K-Phoen/sdk v0.11.0 h1:2tf7uZYhdojMMsd1fRQu6pN7UJDobtoNDD43CemxupE=
 github.com/K-Phoen/sdk v0.11.0/go.mod h1:wp7qXARaIhCYktmoOjRZ+TDMlek5nbayC+waN7vigxI=
+github.com/K-Phoen/sdk v0.12.0 h1:+0QqHoDZbO6zetFMggM3zKF48GKRu744Ycc9w4oyY0E=
+github.com/K-Phoen/sdk v0.12.0/go.mod h1:wp7qXARaIhCYktmoOjRZ+TDMlek5nbayC+waN7vigxI=
 github.com/alecthomas/kong v0.6.1 h1:1kNhcFepkR+HmasQpbiKDLylIL8yh5B5y1zPp5bJimA=
 github.com/alecthomas/kong v0.6.1/go.mod h1:JfHWDzLmbh/puW6I3V7uWenoh56YNVONW+w8eKeUr9I=
 github.com/alecthomas/repr v0.0.0-20210801044451-80ca428c5142 h1:8Uy0oSf5co/NZXje7U1z8Mpep++QJOldL2hs/sBQf48=
