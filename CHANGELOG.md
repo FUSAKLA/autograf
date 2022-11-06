@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [2.0.0] - 2022-11-06
 ### Added
  - Build binaries for darwin and windows (not tested, please do report if you encounter any issues!)
  - Config is now loaded also from location `~/.config.autograf.json` (Which config is used is printed to stderr to ease debugging)
