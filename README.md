@@ -113,7 +113,7 @@ autograf -s {job='foo'}
 ## Panel config customization (EXPERIMENTAL)
 This feature allows you to customize how the panel will look like using the metric HELP text.
 To use it include in the and of the metric HELP string ` AUTOGRAF:{...}` where the supported JSON options 
-can be found in the [`PanelConfig`](./packages/model/panel_config.go#10). Example of such metric HELP can 
+can be found in the [`PanelConfig`](./packages/model/panel_config.go#L10). Example of such metric HELP can 
 be found in the [`./examples/metrics_custom.txt`](./examples/metrics_custom.txt).
 
 
