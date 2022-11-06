@@ -7,14 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
  - Build binaries for darwin and windows (not tested, please do report if you encounter any issues!)
+ - Config is now loaded also from location `~/.config.autograf.json` (Which config is used is printed to stderr to ease debugging)
+ - Support more metric units (amper, hertz, volt, ...)
+ - Experimental support for customization of the generated panels using the metric HELP text, see [the docs](./README.md#panel-config-customization-experimental)
+ - Added demo in the [`./examples/demo`](./examples/demo/)
+ - `--version` flag to print out Autograf version
 ### Changed
+ - Optimized for the newest Grafana releases (9.2+)
+ - Use the new heatmap Grafana panel
+ - Switch range selector from `3m` to special Grafana variable `$__rate_interval`
  - Upgraded to Go 1.19
  - Ignore OpenMetrics `_created` metrics (for more info see [this](https://github.com/prometheus/prometheus/issues/6541) issue)
  - Handle metrics ending with `_time|_time_seconds|_timestamp|_timestamp_seconds` as timestamps in seconds and subtract them from `time()`
+ - Improve layout of generated panels
+ - Add metric names in the name of the row for better visibility
 
 ## [1.1.0] - 2022-08-12
 ### Added
- - Short flags for most common flags, see `--help` or [readme](https://github.com/FUSAKLA/autograf#how-to-use)
+ - Short flags for most common flags, see `--help` or [readme](https://github.com/fusakla/autograf#how-to-use)
 ### Fixed
  - Correctly handle metric selectors if no `--selector` is set
 ### Changed

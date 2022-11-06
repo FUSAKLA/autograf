@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"runtime"
@@ -11,6 +13,7 @@ import (
 
 	"github.com/fusakla/autograf/packages/generator"
 	"github.com/fusakla/autograf/packages/grafana"
+	"github.com/fusakla/autograf/packages/model"
 	"github.com/fusakla/autograf/packages/prometheus"
 )
 
@@ -28,9 +31,15 @@ func openInBrowser(url string) error {
 }
 
 func (r *Command) Run(ctx *Context) error {
-	var metrics map[string]prometheus.Metric
+	var metrics map[string]*model.Metric
 	if r.MetricsFile != "" {
-		data, err := os.ReadFile(r.MetricsFile)
+		var data []byte
+		var err error
+		if r.MetricsFile == "-" {
+			data, err = io.ReadAll(os.Stdin)
+		} else {
+			data, err = os.ReadFile(strings.TrimSpace(r.MetricsFile))
+		}
 		if err != nil {
 			return err
 		}
@@ -39,7 +48,7 @@ func (r *Command) Run(ctx *Context) error {
 			return err
 		}
 	} else if r.PrometheusURL != "" {
-		client, err := prometheus.NewClient(ctx.logger, r.PrometheusURL, nil)
+		client, err := prometheus.NewClient(ctx.logger, strings.TrimSpace(r.PrometheusURL), nil)
 		if err != nil {
 			return err
 		}
@@ -52,7 +61,10 @@ func (r *Command) Run(ctx *Context) error {
 	} else {
 		return fmt.Errorf("At least one of inputs metrics file or Prometheus URL is required")
 	}
-	dashboard, err := generator.Generate(r.GrafanaDashboardName, r.GrafanaDataSource, r.Selector, r.GrafanaVariables, metrics)
+	if err := prometheus.ProcessMetrics(metrics); err != nil {
+		return err
+	}
+	dashboard, err := generator.Generate(strings.TrimSpace(r.GrafanaDashboardName), strings.TrimSpace(r.GrafanaDataSource), strings.TrimSpace(r.Selector), r.GrafanaVariables, metrics)
 	if err != nil {
 		return err
 	}
@@ -60,9 +72,12 @@ func (r *Command) Run(ctx *Context) error {
 		if r.grafanaToken == "" {
 			return fmt.Errorf("you have to specify the GRAFANA_TOKEN variable")
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
-		defer cancel()
-		dashboardUrl, err := grafana.UpsertDashboard(ctx, r.GrafanaURL, r.grafanaToken, r.GrafanaFolder, dashboard)
+		cli := grafana.NewClient(r.GrafanaURL, r.grafanaToken)
+		folderUid, err := cli.EnsureFolder(strings.TrimSpace(r.GrafanaFolder))
+		if err != nil {
+			return err
+		}
+		dashboardUrl, err := cli.UpsertDashboard(folderUid, dashboard)
 		if err != nil {
 			return err
 		}
@@ -73,7 +88,7 @@ func (r *Command) Run(ctx *Context) error {
 			}
 		}
 	} else {
-		jsonData, err := dashboard.MarshalJSON()
+		jsonData, err := json.Marshal(dashboard)
 		if err != nil {
 			return err
 		}

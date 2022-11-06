@@ -2,10 +2,10 @@
 [![Go Report
 Card](https://goreportcard.com/badge/github.com/fusakla/autograf)](https://goreportcard.com/report/github.com/fusakla/autograf)
 [![GitHub actions
-CI](https://img.shields.io/github/workflow/status/fusakla/autograf/Go/main)](https://github.com/FUSAKLA/autograf/actions?query=branch%3Amain)
+CI](https://img.shields.io/github/workflow/status/fusakla/autograf/Go/main)](https://github.com/fusakla/autograf/actions?query=branch%3Amain)
 [![Docker Pulls](https://img.shields.io/docker/pulls/fusakla/autograf)](https://hub.docker.com/r/fusakla/autograf)
 [![GitHub binaries
-download](https://img.shields.io/github/downloads/fusakla/autograf/total?label=Prebuilt%20binaries%20downloads)](https://github.com/FUSAKLA/autograf/releases/latest)
+download](https://img.shields.io/github/downloads/fusakla/autograf/total?label=Prebuilt%20binaries%20downloads)](https://github.com/fusakla/autograf/releases/latest)
 
 **Dynamically generate Grafana dashboard based on Prometheus metrics**
 
@@ -25,7 +25,7 @@ even upload the dashboard Right your to a Grafana for you!
 [autograf-2.webm](https://user-images.githubusercontent.com/6112562/178546235-7f9f815d-e843-4b0c-84dc-4fba2270eedc.webm)
 
 ## Installation
-Using [prebuilt binaries](https://github.com/FUSAKLA/autograf/releases/latest), [Docker
+Using [prebuilt binaries](https://github.com/fusakla/autograf/releases/latest), [Docker
 image](https://hub.docker.com/r/fusakla/autograf) of build it yourself.
 
 ```bash
@@ -42,7 +42,7 @@ make build
 ./autograf --help
 Usage: autograf
 
-Autograf generates Grafana dashboard from Prometheus metrics either read from a /metrics endpoint or queried from live Prometheus instance. The dashboard JSON is by default printed to stdout. But can also upload
+Autograf generates Grafana dashboard from Prometheus metrics either read from a /metrics endpoint or queried form live Prometheus instance. The dashboard JSON is by default printed to stdout. But can also upload
 the dashboard directly to your Grafana instance. You can configure most of the flags using config file. See the docs.
 
 Example from /metrics:
@@ -51,11 +51,12 @@ Example from /metrics:
 
 Example from Prometheus query:
 
-    GRAFANA_TOKEN=xxx autograf --prometheus-url http://prometheus.foo --selector {app='foo'} --grafana-url http://grafana.bar
+    GRAFANA_TOKEN=xxx autograf --prometheus-url http://prometheus.foo --selector '{app="foo"}' --grafana-url http://grafana.bar
 
 Flags:
   -h, --help                                       Show context-sensitive help.
       --debug                                      Enable debug logging
+      --version                                    Print Autograf version and exit
   -f, --metrics-file=STRING                        File containing the metrics exposed by app (will read stdin if se to - )
       --open-metrics-format                        Metrics data are in the application/openmetrics-text format.
   -p, --prometheus-url=STRING                      URL of Prometheus instance to fetch the metrics from.
@@ -88,7 +89,8 @@ Dashboard successfully generated, see https://grafana.foo.bar/d/ygUo8se7k/autogr
 
 ## Config file
 If you do not want to set all the flags again and again you can use a config file. By default autograf looks for it in
-`~/.autograf.json` but can be changed using the `AUTOGRAF_CONFIG` env variable.
+`~/.autograf.json` and `~/.config/autograf.json` but can be changed using the `AUTOGRAF_CONFIG` env variable.
+See the [example](./examples/demo/autograf.json) used in the demo.
 
 ### Config file syntax
 ```json
@@ -105,13 +107,17 @@ If you do not want to set all the flags again and again you can use a config fil
 
 Than you can use simply just this!
 ```bash
-autograf --selector {app='foo'}
+autograf -s {job='foo'}
 ```
+
+## Panel config customization (EXPERIMENTAL)
+This feature allows you to customize how the panel will look like using the metric HELP text.
+To use it include in the and of the metric HELP string ` AUTOGRAF:{...}` where the supported JSON options 
+can be found in the [`PanelConfig`](./packages/model/panel_config.go#10). Example of such metric HELP can 
+be found in the [`./examples/metrics_custom.txt`](./examples/metrics_custom.txt).
 
 
 ## Future ideas
-- Could be a Grafana app plugin and user could just go to `https://grafana.foo.bar/autograf?selector={foo="bar"}` and
-  the dashboard would show up right in the Grafana itself.
-- Allow customizing the graph visualization using some tags in metric HELP(panel type, aggregations, units, colors,
-  description, ...)
+- **Autograf should actually be Grafana app plugin and user could just go to `https://grafana.foo.bar/autograf?selector={foo="bar"}` and
+  the dashboard would show up right in the Grafana itself. Unfortunately my JS juju is not good enough for this.**
 - Add custom visuals for well known metrics

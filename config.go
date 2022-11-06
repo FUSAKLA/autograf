@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"os"
 	"path"
 
@@ -31,11 +33,15 @@ func loadConfig(logger logrus.FieldLogger) config {
 			return c
 		}
 		configFilePath = path.Join(home, ".autograf.json")
+		if _, err := os.Stat(configFilePath); errors.Is(err, os.ErrNotExist) {
+			configFilePath = path.Join(home, ".config", "autograf.json")
+		}
 	}
 	data, err := os.ReadFile(configFilePath)
 	if err != nil {
 		return c
 	}
+	fmt.Fprintf(os.Stderr, "Using config file %s\n", configFilePath)
 	if err := json.Unmarshal(data, &c); err != nil {
 		logger.WithField("error", err).Warn("invalid config file format")
 	}

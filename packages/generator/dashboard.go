@@ -2,26 +2,46 @@ package generator
 
 import (
 	"fmt"
-	"regexp"
 	"sort"
 	"strings"
 
-	"github.com/K-Phoen/grabana/dashboard"
-	"github.com/K-Phoen/grabana/row"
-	"github.com/K-Phoen/grabana/variable/datasource"
-	"github.com/K-Phoen/grabana/variable/query"
-	"github.com/fusakla/autograf/packages/prometheus"
+	"github.com/fusakla/autograf/packages/model"
+	"github.com/fusakla/sdk"
 )
 
-func newRow(dataSource string, selector string, name string, metrics []*prometheus.Metric) dashboard.Option {
-	panels := []row.Option{row.Collapse()}
-	for _, m := range metrics {
-		panels = append(panels, newPanel(dataSource, selector, *m))
+func newRow(dataSource *sdk.DatasourceRef, selector string, name string, metrics []*model.Metric) *sdk.Row {
+	row := sdk.Row{
+		Title:    name,
+		Collapse: true,
 	}
-	return dashboard.Row(
-		name,
-		panels...,
-	)
+	metricNames := []string{}
+	metricNamesChars := 0
+	trimMetricNames := false
+	for _, m := range metrics {
+		mName := strings.TrimPrefix(m.Name, name)
+		if metricNamesChars+len(mName) < 150 {
+			metricNames = append(metricNames, mName)
+			metricNamesChars += len(mName)
+		} else {
+			trimMetricNames = true
+		}
+		if len(metrics) == 1 {
+			m.Config.Width = 12
+		}
+		if m.MetricType == model.MetricTypeInfo {
+			row.Panels = append([]sdk.Panel{*newPanel(dataSource, selector, *m)}, row.Panels...)
+		} else {
+			row.Panels = append(row.Panels, *newPanel(dataSource, selector, *m))
+		}
+
+	}
+	if len(metricNames) > 1 {
+		row.Title += " ❯ " + strings.Join(metricNames, " ❙ ")
+		if trimMetricNames {
+			row.Title += " | ..."
+		}
+	}
+	return &row
 }
 
 func selectorWithVariablesFilter(selector string, filerVariables []string) string {
@@ -36,38 +56,58 @@ func selectorWithVariablesFilter(selector string, filerVariables []string) strin
 	return new + strings.Join(filters, ",") + "}"
 }
 
-func labelVariable(datasourceName, selector, name string) dashboard.Option {
+func labelVariable(datasourceName *sdk.DatasourceRef, selector, name string) sdk.TemplateVar {
 	if selector == "" {
 		selector = "up"
 	}
-	return dashboard.VariableAsQuery(
-		name,
-		query.DataSource(datasourceName),
-		query.Request(fmt.Sprintf("query_result(%s)", selector)),
-		query.Regex(fmt.Sprintf(`/%s="([^"]+)"/`, name)),
-		query.AllValue(".*"),
-		query.DefaultAll(),
-		query.IncludeAll(),
-		query.Multi(),
-		query.Sort(query.AlphabeticalAsc), query.DefaultAll(),
-	)
+	return sdk.TemplateVar{
+		Name: name,
+		Type: "query",
+		Datasource: &sdk.DatasourceRef{
+			Type: "prometheus",
+			UID:  "${datasource}",
+		},
+		Query: struct {
+			Query string `json:"query"`
+			RefId string `json:"refId"`
+		}{
+			Query: fmt.Sprintf("query_result(%s)", selector),
+			RefId: "StandardVariableQuery",
+		},
+		Regex:      fmt.Sprintf(`/%s="([^"]+)"/`, name),
+		AllValue:   ".*",
+		Options:    []sdk.Option{},
+		IncludeAll: true,
+		Multi:      true,
+		Sort:       1, // Alphabetical ASC
+	}
 }
 
-func newDashboard(name, datasourceName, selector string, filerVariables []string, metricGroups map[string][]*prometheus.Metric) (dashboard.Builder, error) {
-	opts := []dashboard.Option{
-		dashboard.AutoRefresh("1m"),
-		dashboard.SharedCrossHair(),
-		dashboard.Tags([]string{"autograf", "generated"}),
-		dashboard.Timezone(dashboard.Browser),
-		dashboard.Time("now-1h", "now"),
-		dashboard.VariableAsDatasource(
-			"datasource",
-			datasource.Type("prometheus"),
-			datasource.Regex(fmt.Sprintf("/%s/", regexp.QuoteMeta(datasourceName))),
-		),
+func newDashboard(name, datasourceName, selector string, filterVariables []string, metricGroups map[string][]*model.Metric) (*sdk.Board, error) {
+	board := sdk.NewBoard(name)
+	board.Refresh = &sdk.BoolString{Flag: true, Value: "1m"}
+	board.GraphTooltip = 1 // 0 for no shared crosshair or tooltip (default), 1 for shared crosshair, 2 for shared crosshair AND shared tooltip
+	board.Tags = []string{"autograf", "generated"}
+	board.Time = sdk.Time{From: "now-1h", To: "now"}
+	board.Timezone = "browser"
+	var refresh int64 = 1
+	board.Templating.List = []sdk.TemplateVar{
+		{
+			Type:    "datasource",
+			Name:    "datasource",
+			Label:   "Datasource",
+			Query:   "prometheus",
+			Refresh: sdk.BoolInt{Flag: true, Value: &refresh},
+			Options: []sdk.Option{},
+			Current: sdk.Current{
+				Text:     &sdk.StringSliceString{Valid: true, Value: []string{datasourceName}},
+				Selected: true,
+				Value:    datasourceName,
+			},
+		},
 	}
-	for _, v := range filerVariables {
-		opts = append(opts, labelVariable(datasourceName, selector, v))
+	for _, v := range filterVariables {
+		board.Templating.List = append(board.Templating.List, labelVariable(&sdk.DatasourceRef{UID: "${datasource}"}, selector, v))
 	}
 	rowNames := []string{}
 	for k := range metricGroups {
@@ -75,10 +115,7 @@ func newDashboard(name, datasourceName, selector string, filerVariables []string
 	}
 	sort.Strings(rowNames)
 	for _, r := range rowNames {
-		opts = append(opts, newRow("${datasource}", selectorWithVariablesFilter(selector, filerVariables), r, metricGroups[r]))
+		board.Rows = append(board.Rows, newRow(&sdk.DatasourceRef{Type: "prometheus", UID: "${datasource}"}, selectorWithVariablesFilter(selector, filterVariables), r, metricGroups[r]))
 	}
-	return dashboard.New(
-		name,
-		opts...,
-	)
+	return board, nil
 }

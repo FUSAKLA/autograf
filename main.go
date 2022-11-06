@@ -16,15 +16,8 @@ type Context struct {
 	logger logrus.FieldLogger
 }
 
-type VersionCmd struct{}
-
-func (r *VersionCmd) Run(_ *Context) error {
-	fmt.Println(Version)
-	return nil
-}
-
 var help = `
-Autograf generates Grafana dashboard form Prometheus metrics either read form a /metrics endpoint or queried form live Prometheus instance.
+Autograf generates Grafana dashboard from Prometheus metrics either read from a /metrics endpoint or queried form live Prometheus instance.
 The dashboard JSON is by default printed to stdout. But can also upload the dashboard directly to your Grafana instance.
 You can configure most of the flags using config file. See the docs.
 
@@ -32,12 +25,13 @@ Example from /metrics:
   curl http://foo.bar/metrics | autograf --metrics-file - 
 
 Example from Prometheus query:
-  GRAFANA_TOKEN=xxx autograf --prometheus-url http://prometheus.foo --selector {app='foo'} --grafana-url http://grafana.bar 
+  GRAFANA_TOKEN=xxx autograf --prometheus-url http://prometheus.foo --selector '{app="foo"}' --grafana-url http://grafana.bar 
 
 `
 
 type Command struct {
-	Debug bool `help:"Enable debug logging"`
+	Debug   bool `help:"Enable debug logging"`
+	Version bool `help:"Print Autograf version and exit"`
 
 	MetricsFile       string `short:"f" help:"File containing the metrics exposed by app (will read stdin if se to - )"`
 	OpenMetricsFormat bool   `help:"Metrics data are in the application/openmetrics-text format."`
@@ -101,6 +95,10 @@ func main() {
 	rootLogger.SetLevel(logrus.WarnLevel)
 	if CLI.Debug {
 		rootLogger.SetLevel(logrus.DebugLevel)
+	}
+	if CLI.Version {
+		fmt.Println("Autograf version: " + Version)
+		os.Exit(0)
 	}
 	CLI.grafanaToken = os.Getenv("GRAFANA_TOKEN")
 	CLI.updateFromConfig(loadConfig(rootLogger))

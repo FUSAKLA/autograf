@@ -1,0 +1,1 @@
+# HELP prometheus_http_requests_total Counter of HTTP requests. AUTOGRAF:{"row":"Prometheus HTTP requests","aggregation":"sum","aggregate_by":["handler","code"],"legend_position":"bottom","fill":100,"max_from_metric":"prometheus_remote_storage_shards_max"}

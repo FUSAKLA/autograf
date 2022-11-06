@@ -1,4 +1,4 @@
-package prometheus
+package model
 
 // MetricType models the type of a metric.
 type MetricType string
@@ -18,9 +18,13 @@ const (
 type MetricUnit string
 
 const (
-	MetricUnitNone    MetricUnit = "none"
-	MetricUnitSeconds MetricUnit = "s"
-	MetricUnitsBytes  MetricUnit = "decbytes"
+	MetricUnitNone     MetricUnit = "none"
+	MetricUnitSeconds  MetricUnit = "s"
+	MetricUnitsBytes   MetricUnit = "decbytes"
+	MetricUnitsAmpere  MetricUnit = "amp"
+	MetricUnitsVolt    MetricUnit = "volt"
+	MetricUnitsHertz   MetricUnit = "rothz"
+	MetricUnitsCelsius MetricUnit = "celsius"
 )
 
 type Metric struct {
@@ -29,8 +33,5 @@ type Metric struct {
 	Help       string
 	Unit       MetricUnit
 	Comment    string
-}
-
-func (m Metric) String() string {
-	return m.Name
+	Config     PanelConfig
 }

@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  grafana:
+    image: fusakla/grafana-with-token
+    pull_policy: always
+    ports:
+      - 3000:3000
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ${PWD}/prometheus.yml:/etc/prometheus/prometheus.yml
+  alertmanager:
+    image: prom/alertmanager:latest
+  node-exporter:
+    image: prom/node-exporter:latest
