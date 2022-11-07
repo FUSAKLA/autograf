@@ -120,4 +120,4 @@ be found in the [`./examples/metrics_custom.txt`](./examples/metrics_custom.txt)
 ## Future ideas
 - **Autograf should actually be Grafana app plugin and user could just go to `https://grafana.foo.bar/autograf?selector={foo="bar"}` and
   the dashboard would show up right in the Grafana itself. Unfortunately my JS juju is not good enough for this.**
-- Add custom visuals for well known metrics
+- Add custom visuals for well known metrics.
