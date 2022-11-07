@@ -17,7 +17,7 @@ type Context struct {
 }
 
 var help = `
-Autograf generates Grafana dashboard from Prometheus metrics either read from a /metrics endpoint or queried form live Prometheus instance.
+Autograf generates Grafana dashboard from Prometheus metrics either read from a /metrics endpoint or queried from live Prometheus instance.
 The dashboard JSON is by default printed to stdout. But can also upload the dashboard directly to your Grafana instance.
 You can configure most of the flags using config file. See the docs.
 
