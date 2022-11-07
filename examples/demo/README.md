@@ -1,6 +1,6 @@
 # Example demo of Autograf
 
-Yo will need to install or build the autograf, see [the installation instructions](../../README.md#installation).
+You will need to install or build the Autograf, see [the installation instructions](../../README.md#installation).
 
 
 Than you can just run
