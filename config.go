@@ -41,7 +41,11 @@ func loadConfig(logger logrus.FieldLogger) config {
 	if err != nil {
 		return c
 	}
-	fmt.Fprintf(os.Stderr, "Using config file %s\n", configFilePath)
+	_, err = fmt.Fprintf(os.Stderr, "Using config file %s\n", configFilePath)
+	if err != nil {
+		logger.WithField("error", err).Warn("failed to write to stderr")
+		return c
+	}
 	if err := json.Unmarshal(data, &c); err != nil {
 		logger.WithField("error", err).Warn("invalid config file format")
 	}
