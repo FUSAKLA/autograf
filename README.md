@@ -20,7 +20,7 @@ _Well I have a good news for you, Autograf have you covered!_ :tada:
 ## How does it work?
 Autograf generates Grafana dashboard directly from `/metrics` or based on a metrics matching provided selector. Each
 metric has own panel optimized for its type and those are grouped based on metric namespacing. If you want Autograf can
-even upload the dashboard Right your to a Grafana for you!
+even upload the dashboard right your to a Grafana for you!
 
 [autograf-2.webm](https://user-images.githubusercontent.com/6112562/178546235-7f9f815d-e843-4b0c-84dc-4fba2270eedc.webm)
 
