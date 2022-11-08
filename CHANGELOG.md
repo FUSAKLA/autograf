@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2022-11-08
+### Fixed
+ - Fix heatmap panel query format to be valid
+
 ## [2.0.0] - 2022-11-06
 ### Added
  - Build binaries for darwin and windows (not tested, please do report if you encounter any issues!)
