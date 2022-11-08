@@ -111,7 +111,7 @@ func newTimeSeriesPanel(dataSource *sdk.DatasourceRef, selector string, metric m
 }
 
 func newHeatmapPanel(dataSource *sdk.DatasourceRef, selector string, metric model.Metric) *sdk.Panel {
-	query := fmt.Sprintf("sum(rate(%s%s[%s])) by (%s)", metric.Name, selector, strings.Join(append(metric.Config.AggregateBy, "le"), ","), rateIntervalVariable)
+	query := fmt.Sprintf("sum(rate(%s%s[%s])) by (%s)", metric.Name, selector, rateIntervalVariable, strings.Join(append(metric.Config.AggregateBy, "le"), ","))
 	panel := sdk.NewHeatmap(panelNameFromQuery(query))
 	panel.Description = &metric.Help
 	panel.HeatmapPanel.HideZeroBuckets = true
