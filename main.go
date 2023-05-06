@@ -22,16 +22,17 @@ The dashboard JSON is by default printed to stdout. But can also upload the dash
 You can configure most of the flags using config file. See the docs.
 
 Example from /metrics:
-  curl http://foo.bar/metrics | autograf --metrics-file - 
+  curl http://foo.bar/metrics | autograf --metrics-file -
 
 Example from Prometheus query:
-  GRAFANA_TOKEN=xxx autograf --prometheus-url http://prometheus.foo --selector '{app="foo"}' --grafana-url http://grafana.bar 
+  GRAFANA_TOKEN=xxx autograf --prometheus-url http://prometheus.foo --selector '{app="foo"}' --grafana-url http://grafana.bar
 
 `
 
 type Command struct {
-	Debug   bool `help:"Enable debug logging"`
-	Version bool `help:"Print Autograf version and exit"`
+	Debug        bool `help:"Enable debug logging"`
+	Version      bool `help:"Print Autograf version and exit"`
+	IgnoreConfig bool `short:"i" help:"Ignore any config file"`
 
 	MetricsFile       string `short:"f" help:"File containing the metrics exposed by app (will read stdin if se to - )"`
 	OpenMetricsFormat bool   `help:"Metrics data are in the application/openmetrics-text format."`
@@ -101,7 +102,9 @@ func main() {
 		os.Exit(0)
 	}
 	CLI.grafanaToken = os.Getenv("GRAFANA_TOKEN")
-	CLI.updateFromConfig(loadConfig(rootLogger))
+	if !CLI.IgnoreConfig {
+		CLI.updateFromConfig(loadConfig(rootLogger))
+	}
 
 	if CLI.PrometheusURL == "" && CLI.MetricsFile == "" {
 		rootLogger.Error("Error, at leas one of the --prometheus-url or --metrics-file flags have to be set")
