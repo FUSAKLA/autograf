@@ -42,7 +42,7 @@ make build
 ./autograf --help
 Usage: autograf
 
-Autograf generates Grafana dashboard from Prometheus metrics either read from a /metrics endpoint or queried form live Prometheus instance. The dashboard JSON is by default printed to stdout. But can also upload
+Autograf generates Grafana dashboard from Prometheus metrics either read from a /metrics endpoint or queried from live Prometheus instance. The dashboard JSON is by default printed to stdout. But can also upload
 the dashboard directly to your Grafana instance. You can configure most of the flags using config file. See the docs.
 
 Example from /metrics:
@@ -57,6 +57,7 @@ Flags:
   -h, --help                                       Show context-sensitive help.
       --debug                                      Enable debug logging
       --version                                    Print Autograf version and exit
+  -i, --ignore-config                              Ignore any config file
   -f, --metrics-file=STRING                        File containing the metrics exposed by app (will read stdin if se to - )
       --open-metrics-format                        Metrics data are in the application/openmetrics-text format.
   -p, --prometheus-url=STRING                      URL of Prometheus instance to fetch the metrics from.
@@ -112,8 +113,8 @@ autograf -s {job='foo'}
 
 ## Panel config customization (EXPERIMENTAL)
 This feature allows you to customize how the panel will look like using the metric HELP text.
-To use it include in the and of the metric HELP string ` AUTOGRAF:{...}` where the supported JSON options 
-can be found in the [`PanelConfig`](./packages/model/panel_config.go#L10). Example of such metric HELP can 
+To use it include in the and of the metric HELP string ` AUTOGRAF:{...}` where the supported JSON options
+can be found in the [`PanelConfig`](./packages/model/panel_config.go#L10). Example of such metric HELP can
 be found in the [`./examples/metrics_custom.txt`](./examples/metrics_custom.txt).
 
 
