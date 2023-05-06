@@ -36,6 +36,12 @@ or
 make build
 ```
 
+## Example
+To see Autograf in action you can use the [demo example](./examples/demo/README.md). It is a simple docker-compose
+that starts up Prometheus, Node exporter and Grafana. The Grafana instance is pre-configured with a datasource
+pointing to the Proemtheus and service account. There is also an autograf.json config preset to test it with the setup.
+See it's README for more details.
+
 ## How to use?
 
 ```bash
