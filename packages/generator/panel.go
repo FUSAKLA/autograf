@@ -119,7 +119,7 @@ func newHeatmapPanel(dataSource *sdk.DatasourceRef, selector string, metric mode
 	panel.HeatmapPanel.FieldConfig.Defaults.Unit = string(metric.Unit)
 	panel.HeatmapPanel.Options.Tooltip.Show = true
 	panel.HeatmapPanel.Options.Tooltip.ShowHistogram = true
-	panel.HeatmapPanel.Options.Calculate = true
+	panel.HeatmapPanel.Options.Calculate = false
 	panel.HeatmapPanel.Options.YAxis.AxisPlacement = "left"
 	panel.HeatmapPanel.Options.YAxis.Unit = string(metric.Unit)
 	panel.HeatmapPanel.Options.Color.Mode = "opacity"
