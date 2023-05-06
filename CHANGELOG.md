@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2023-05-06
+### Added
+ - New flag `--ignore-config | -i` to ignore any config file found
+ - Updated demo example to newest grafana 9.5.1 and verified all works
+ - Updated all dependencies to newest versions
+### Fixed
+ - Fix heatmap panel to not calculate the histogram buckets
+
 ## [2.0.1] - 2022-11-08
 ### Fixed
  - Fix heatmap panel query format to be valid
