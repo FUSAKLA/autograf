@@ -1,10 +1,10 @@
 {
-    "prometheus_url": "http://0.0.0.0:9090",
-    "grafana_url": "http://0.0.0.0:3000",
+    "prometheus_url": "http://127.0.0.1:9090",
+    "grafana_url": "http://127.0.0.1:3000",
     "grafana_datasource": "Prometheus",
     "grafana_variables": [
         "job"
     ],
-    "grafana_token": "glsa_X5uT9Dn32iZuivKGrJ9JRiXsgO4HZNvu_f4ceca87",
+    "grafana_token": "glsa_3ehqArj4kYIttcmK7xNqHm2Z3O5R6piF_d6710ad4",
     "open_browser": true
 }
