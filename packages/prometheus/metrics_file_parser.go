@@ -58,7 +58,7 @@ func ParseMetricsText(text []byte, openMetrics bool) (map[string]*model.Metric, 
 	if openMetrics {
 		contentType = "application/openmetrics-text"
 	}
-	p, err := textparse.New(text, contentType)
+	p, err := textparse.New(text, contentType, true)
 	if err != nil {
 		return nil, err
 	}
