@@ -11,7 +11,8 @@ import (
 )
 
 type config struct {
-	PrometheusURL string `json:"prometheus_url,omitempty"`
+	PrometheusURL         string `json:"prometheus_url,omitempty"`
+	PrometheusBearerToken string `json:"prometheus_bearer_token,omitempty"`
 
 	GrafanaURL           string   `json:"grafana_url,omitempty"`
 	GrafanaToken         string   `json:"grafana_token,omitempty"`

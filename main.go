@@ -37,9 +37,10 @@ type Command struct {
 	MetricsFile       string `short:"f" help:"File containing the metrics exposed by app (will read stdin if se to - )"`
 	OpenMetricsFormat bool   `help:"Metrics data are in the application/openmetrics-text format."`
 
-	PrometheusURL    string   `short:"p" help:"URL of Prometheus instance to fetch the metrics from."`
-	Selector         string   `short:"s" help:"Selector to filter metrics from the Prometheus instance."`
-	GrafanaVariables []string `help:"Labels used as a variables for filtering in dashboard"`
+	PrometheusURL         string   `short:"p" help:"URL of Prometheus instance to fetch the metrics from."`
+	PrometheusBearerToken string   `help:"Bearer token to use for authentication with Prometheus instance."`
+	Selector              string   `short:"s" help:"Selector to filter metrics from the Prometheus instance."`
+	GrafanaVariables      []string `help:"Labels used as a variables for filtering in dashboard"`
 
 	GrafanaURL           string `help:"URL of Grafana to upload the dashboard to, if not specified, dashboard JSON is printed to stdout"`
 	GrafanaFolder        string `help:"Name of target Grafana folder"`
@@ -54,6 +55,9 @@ type Command struct {
 func (c *Command) updateFromConfig(conf config) {
 	if c.PrometheusURL == "" {
 		c.PrometheusURL = conf.PrometheusURL
+	}
+	if c.PrometheusBearerToken == "" {
+		c.PrometheusBearerToken = conf.PrometheusBearerToken
 	}
 	if c.GrafanaURL == "" {
 		c.GrafanaURL = conf.GrafanaURL

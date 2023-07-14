@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"runtime"
@@ -16,6 +17,16 @@ import (
 	"github.com/fusakla/autograf/packages/model"
 	"github.com/fusakla/autograf/packages/prometheus"
 )
+
+type AuthenticatedTransport struct {
+	http.RoundTripper
+	bearerToken string
+}
+
+func (at *AuthenticatedTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	req.Header.Add("Authorization", "Bearer "+at.bearerToken)
+	return at.RoundTripper.RoundTrip(req)
+}
 
 func openInBrowser(url string) error {
 	var err error
@@ -48,7 +59,11 @@ func (r *Command) Run(ctx *Context) error {
 			return err
 		}
 	} else if r.PrometheusURL != "" {
-		client, err := prometheus.NewClient(ctx.logger, strings.TrimSpace(r.PrometheusURL), nil)
+		tr := http.DefaultTransport
+		if r.PrometheusBearerToken != "" {
+			tr = &AuthenticatedTransport{RoundTripper: tr, bearerToken: r.PrometheusBearerToken}
+		}
+		client, err := prometheus.NewClient(ctx.logger, strings.TrimSpace(r.PrometheusURL), tr)
 		if err != nil {
 			return err
 		}

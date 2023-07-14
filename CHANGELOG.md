@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+ - New config option `prometheus_bearer_token` to allow authentication with Prometheus using a bearer token
+
 ## [2.1.0] - 2023-05-06
 ### Added
  - New flag `--ignore-config | -i` to ignore any config file found
