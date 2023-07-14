@@ -48,8 +48,8 @@ See it's README for more details.
 ./autograf --help
 Usage: autograf
 
-Autograf generates Grafana dashboard from Prometheus metrics either read from a /metrics endpoint or queried from live Prometheus instance. The dashboard JSON is by default printed to stdout. But can also upload
-the dashboard directly to your Grafana instance. You can configure most of the flags using config file. See the docs.
+Autograf generates Grafana dashboard from Prometheus metrics either read from a /metrics endpoint or queried from live Prometheus instance. The dashboard JSON is by default printed to stdout. But can also upload the dashboard directly to
+your Grafana instance. You can configure most of the flags using config file. See the docs.
 
 Example from /metrics:
 
@@ -67,6 +67,7 @@ Flags:
   -f, --metrics-file=STRING                        File containing the metrics exposed by app (will read stdin if se to - )
       --open-metrics-format                        Metrics data are in the application/openmetrics-text format.
   -p, --prometheus-url=STRING                      URL of Prometheus instance to fetch the metrics from.
+      --prometheus-bearer-token=STRING             Bearer token to use for authentication with Prometheus instance.
   -s, --selector=STRING                            Selector to filter metrics from the Prometheus instance.
       --grafana-variables=GRAFANA-VARIABLES,...    Labels used as a variables for filtering in dashboard
       --grafana-url=STRING                         URL of Grafana to upload the dashboard to, if not specified, dashboard JSON is printed to stdout
@@ -103,11 +104,14 @@ See the [example](./examples/demo/autograf.json) used in the demo.
 ```json
 {
     "prometheus_url": "http://demo.robustperception.io:9090",
+    "prometheus_bearer_token": "xxx",
+
     "grafana_url": "https://grafana.foo.bar",
     "grafana_dashboard_name": "Autograf",
     "grafana_folder": "FUSAKLAS garbage",
     "grafana_datasource": "Prometheus",
     "grafana_token": "xxx",
+    
     "open_browser": true
 }
 ```
