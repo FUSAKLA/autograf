@@ -1,4 +1,4 @@
-package model
+package generator
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	validate "github.com/go-playground/validator/v10"
 )
 
-type PanelConfig struct {
+type MetricConfig struct {
 	// Overrides name of the row, all metrics with the same row name will be grouped together
 	Row string
 
@@ -16,7 +16,7 @@ type PanelConfig struct {
 	// Labels to aggregate by
 	AggregateBy []string `json:"aggregate_by" validate:"excluded_without=Aggregation"`
 
-	// Stack searies
+	// Stack series
 	Stack bool
 	// How thick the line should be
 	LineWidth int `validate:"gte=0,lte=10"`
@@ -38,9 +38,21 @@ type PanelConfig struct {
 	MinFromMetric string `json:"min_from_metric"`
 }
 
+func (c MetricConfig) ThresholdMetric() *Metric {
+	defaultConfig := MetricConfig{LineWidth: 2, Fill: 0, Stack: false}
+	if c.MaxFromMetric != "" {
+		defaultConfig.Aggregation = "min"
+		return &Metric{Name: c.MaxFromMetric, Config: defaultConfig}
+	} else if c.MinFromMetric != "" {
+		defaultConfig.Aggregation = "max"
+		return &Metric{Name: c.MaxFromMetric, Config: defaultConfig}
+	}
+	return nil
+}
+
 var configSeparator = " AUTOGRAF:"
 
-var defaultConfig = PanelConfig{
+var defaultConfig = MetricConfig{
 	Stack:          false,
 	LineWidth:      1,
 	Fill:           1,
@@ -51,7 +63,7 @@ var defaultConfig = PanelConfig{
 	Height:         5,
 }
 
-func LoadConfigFromHelp(help string) (PanelConfig, error) {
+func LoadConfigFromHelp(help string) (MetricConfig, error) {
 	conf := defaultConfig
 	parts := strings.Split(help, configSeparator)
 	if len(parts) < 2 {

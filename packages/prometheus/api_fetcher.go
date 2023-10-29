@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"time"
 
-	autograf_model "github.com/fusakla/autograf/packages/model"
+	"github.com/fusakla/autograf/packages/generator"
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
@@ -69,7 +69,7 @@ func (c *Client) queryMetricsForSelector(ctx context.Context, selector string) (
 	}
 }
 
-func (c *Client) MetricsForSelector(ctx context.Context, selector string) (map[string]*autograf_model.Metric, error) {
+func (c *Client) MetricsForSelector(ctx context.Context, selector string) (map[string]*generator.Metric, error) {
 	samples, err := c.queryMetricsForSelector(ctx, selector)
 	if err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func (c *Client) MetricsForSelector(ctx context.Context, selector string) (map[s
 	if err != nil {
 		return nil, err
 	}
-	metrics := map[string]*autograf_model.Metric{}
+	metrics := map[string]*generator.Metric{}
 	for _, s := range samples {
 		metricName := string(s.Metric["__name__"])
 		metricMetadata, ok := metadata[stripSpecialSuffixes(metricName)]
@@ -86,14 +86,14 @@ func (c *Client) MetricsForSelector(ctx context.Context, selector string) (map[s
 			metricMetadata = metadata[metricName]
 		}
 		if len(metricMetadata) > 0 {
-			metrics[metricName] = &autograf_model.Metric{
+			metrics[metricName] = &generator.Metric{
 				Name:       metricName,
-				MetricType: autograf_model.MetricType(metricMetadata[0].Type),
+				MetricType: generator.MetricType(metricMetadata[0].Type),
 				Help:       metricMetadata[0].Help,
-				Unit:       autograf_model.MetricUnit(metricMetadata[0].Unit),
+				Unit:       generator.MetricUnit(metricMetadata[0].Unit),
 			}
 		} else {
-			metrics[metricName] = &autograf_model.Metric{
+			metrics[metricName] = &generator.Metric{
 				Name: metricName,
 			}
 		}

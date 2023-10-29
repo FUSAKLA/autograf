@@ -4,19 +4,19 @@ import (
 	"io"
 	"strings"
 
-	"github.com/fusakla/autograf/packages/model"
+	"github.com/fusakla/autograf/packages/generator"
 	"github.com/prometheus/prometheus/model/textparse"
 )
 
 func newFileMetrics() fileMetrics {
-	return fileMetrics{metrics: map[string]*model.Metric{}}
+	return fileMetrics{metrics: map[string]*generator.Metric{}}
 }
 
 type fileMetrics struct {
-	metrics map[string]*model.Metric
+	metrics map[string]*generator.Metric
 }
 
-func (f *fileMetrics) add(metric model.Metric) {
+func (f *fileMetrics) add(metric generator.Metric) {
 	m, ok := f.metrics[metric.Name]
 	if !ok {
 		f.metrics[metric.Name] = &metric
@@ -39,19 +39,19 @@ func (f *fileMetrics) add(metric model.Metric) {
 func (f *fileMetrics) addHistograms(histograms []string) {
 	for _, h := range histograms {
 		m := f.metrics[h]
-		f.add(model.Metric{Name: m.Name + "_bucket", MetricType: model.MetricTypeHistogram, Help: m.Help, Unit: m.Unit})
-		f.add(model.Metric{Name: m.Name + "_sum", MetricType: model.MetricTypeHistogram, Help: m.Help, Unit: m.Unit})
-		f.add(model.Metric{Name: m.Name + "_count", MetricType: model.MetricTypeHistogram, Help: m.Help, Unit: m.Unit})
+		f.add(generator.Metric{Name: m.Name + "_bucket", MetricType: generator.MetricTypeHistogram, Help: m.Help, Unit: m.Unit})
+		f.add(generator.Metric{Name: m.Name + "_sum", MetricType: generator.MetricTypeHistogram, Help: m.Help, Unit: m.Unit})
+		f.add(generator.Metric{Name: m.Name + "_count", MetricType: generator.MetricTypeHistogram, Help: m.Help, Unit: m.Unit})
 		delete(f.metrics, h)
 	}
 }
 
-func (f *fileMetrics) finalMetrics() map[string]*model.Metric {
+func (f *fileMetrics) finalMetrics() map[string]*generator.Metric {
 	delete(f.metrics, "")
 	return f.metrics
 }
 
-func ParseMetricsText(text []byte, openMetrics bool) (map[string]*model.Metric, error) {
+func ParseMetricsText(text []byte, openMetrics bool) (map[string]*generator.Metric, error) {
 	metrics := newFileMetrics()
 	histograms := []string{}
 	contentType := "text"
@@ -77,16 +77,16 @@ func ParseMetricsText(text []byte, openMetrics bool) (map[string]*model.Metric, 
 			if mType == textparse.MetricTypeHistogram {
 				histograms = append(histograms, string(mName))
 			}
-			metrics.add(model.Metric{Name: string(mName), MetricType: model.MetricType(mType)})
+			metrics.add(generator.Metric{Name: string(mName), MetricType: generator.MetricType(mType)})
 		case textparse.EntryHelp:
 			mName, mHelp := p.Help()
-			metrics.add(model.Metric{Name: string(mName), Help: string(mHelp)})
+			metrics.add(generator.Metric{Name: string(mName), Help: string(mHelp)})
 		case textparse.EntryUnit:
 			mName, mUnit := p.Unit()
-			metrics.add(model.Metric{Name: string(mName), Unit: model.MetricUnit(mUnit)})
+			metrics.add(generator.Metric{Name: string(mName), Unit: generator.MetricUnit(mUnit)})
 		case textparse.EntrySeries:
 			m, _, _ := p.Series()
-			metrics.add(model.Metric{Name: strings.Split(string(m), "{")[0]})
+			metrics.add(generator.Metric{Name: strings.Split(string(m), "{")[0]})
 		default:
 		}
 	}

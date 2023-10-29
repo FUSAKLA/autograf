@@ -3,9 +3,6 @@ package generator
 import (
 	"fmt"
 	"strings"
-
-	"github.com/fusakla/autograf/packages/model"
-	"github.com/fusakla/sdk"
 )
 
 func newTree(prefix string, level int) *metricsTree {
@@ -19,12 +16,12 @@ func newTree(prefix string, level int) *metricsTree {
 type metricsTree struct {
 	leafs  map[string]*metricsTree
 	prefix string
-	metric *model.Metric
+	metric *Metric
 	level  int
 }
 
-func (t *metricsTree) metrics() []*model.Metric {
-	metrics := []*model.Metric{}
+func (t *metricsTree) metrics() []*Metric {
+	metrics := []*Metric{}
 	if t.metric != nil {
 		metrics = append(metrics, t.metric)
 	}
@@ -38,9 +35,9 @@ func (t *metricsTree) metrics() []*model.Metric {
 	return metrics
 }
 
-func (t *metricsTree) metricGroups() map[string][]*model.Metric {
-	others := []*model.Metric{}
-	groups := map[string][]*model.Metric{}
+func (t *metricsTree) metricGroups() map[string][]*Metric {
+	others := []*Metric{}
+	groups := map[string][]*Metric{}
 	for _, l := range t.leafs {
 		subtreeMetrics := l.metrics()
 		if len(subtreeMetrics) < 3 && t.prefix != "" {
@@ -72,7 +69,7 @@ func (t metricsTree) String() string {
 	return out
 }
 
-func (t *metricsTree) add(metric *model.Metric) {
+func (t *metricsTree) add(metric *Metric) {
 	strippedMetricName := strings.TrimPrefix(strings.TrimPrefix(metric.Name, t.prefix), "_")
 	if strippedMetricName == "" {
 		t.metric = metric
@@ -86,32 +83,18 @@ func (t *metricsTree) add(metric *model.Metric) {
 	t.leafs[prefix].add(metric)
 }
 
-func groupMetrics(metrics map[string]*model.Metric) map[string][]*model.Metric {
+func groupIntoPseudoDashboard(metrics map[string]*Metric) PseudoDashboard {
 	tree := newTree("", 0)
-	metricGroups := map[string][]*model.Metric{}
+	dashboard := PseudoDashboard{}
 	for _, m := range metrics {
 		if m.Config.Row != "" {
-			r, ok := metricGroups[m.Config.Row]
-			if !ok {
-				metricGroups[m.Config.Row] = []*model.Metric{m}
-			} else {
-				metricGroups[m.Config.Row] = append(r, m)
-			}
+			dashboard.AddRowPanels(m.Config.Row, []*Metric{m})
 			continue
 		}
 		tree.add(m)
 	}
 	for k, v := range tree.metricGroups() {
-		metricGroups[k] = v
+		dashboard.AddRowPanels(k, v)
 	}
-	return metricGroups
-}
-
-func Generate(name, datasource, selector string, filerVariables []string, metrics map[string]*model.Metric) (*sdk.Board, error) {
-	metricGroups := groupMetrics(metrics)	
-	dashboard, err := newDashboard(name, datasource, selector, filerVariables, metricGroups)
-	if err != nil {
-		return nil, err
-	}
-	return dashboard, nil
+	return dashboard
 }
