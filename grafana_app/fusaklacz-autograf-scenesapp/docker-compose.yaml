@@ -1,0 +1,22 @@
+version: '3.0'
+
+services:
+  grafana:
+    container_name: 'fusaklacz-autograf-scenesapp'
+    platform: 'linux/amd64'
+    build:
+      context: ./.config
+      args:
+        grafana_image: ${GRAFANA_IMAGE:-grafana}
+        grafana_version: ${GRAFANA_VERSION:-10.0.3}
+    ports:
+      - 3000:3000/tcp
+    volumes:
+      - ./dist:/var/lib/grafana/plugins/fusaklacz-autograf-scenesapp
+      - ./provisioning:/etc/grafana/provisioning
+  promehteus:
+    container_name: 'prometheus'
+    platform: 'linux/amd64'
+    image: prom/prometheus
+    ports:
+      - 9090:9090/tcp
