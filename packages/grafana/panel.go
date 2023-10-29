@@ -1,37 +1,27 @@
-package generator
+package grafana
 
 import (
 	"fmt"
 	"regexp"
-	"strings"
 
-	"github.com/fusakla/autograf/packages/model"
+	"github.com/fusakla/autograf/packages/generator"
 	"github.com/fusakla/sdk"
 )
 
-var timeMetricsRegexp = regexp.MustCompile(`.+(_time|_time_seconds|_timestamp|_timestamp_seconds|_update)$`)
-
-type limitType string
-
 const (
-	maxLimit limitType = "max"
-	minLimit limitType = "min"
-
-	timeSeriesFormat = "time_series"
-
+	timeSeriesFormat      = "time_series"
 	panelHeightCoeficient = 40
-
-	rateIntervalVariable = "$__rate_interval"
+	rateIntervalVariable  = "$__rate_interval"
 )
 
 func panelNameFromQuery(query string) string {
 	return regexp.MustCompile(`\{[^{}]*\}`).ReplaceAllString(query, "")
 }
 
-func addLimitTarget(panel *sdk.Panel, lType limitType, metric string, selector string) {
+func addLimitTarget(panel *sdk.Panel, lType generator.LimitType, metric string, selector string) {
 	panel.TimeseriesPanel.Targets = append(panel.TimeseriesPanel.Targets, sdk.Target{
 		RefID:        metric,
-		Expr:         fmt.Sprintf("%s(%s%s)", lType, metric, selector),
+		Expr:         generator.ThresholdQuery(metric, selector, lType),
 		Instant:      false,
 		LegendFormat: fmt.Sprintf("%s limit", lType),
 		Format:       timeSeriesFormat,
@@ -46,19 +36,8 @@ func addLimitTarget(panel *sdk.Panel, lType limitType, metric string, selector s
 	})
 }
 
-func newTimeSeriesPanel(dataSource *sdk.DatasourceRef, selector string, metric model.Metric) *sdk.Panel {
-	query := fmt.Sprintf("%s%s", metric.Name, selector)
-	if metric.MetricType == model.MetricTypeCounter {
-		query = fmt.Sprintf("rate(%s%s[%s])", metric.Name, selector, rateIntervalVariable)
-	}
-	if timeMetricsRegexp.MatchString(metric.Name) {
-		query = "time() - " + query
-		metric.Unit = model.MetricUnitSeconds
-	}
-	if metric.Config.Aggregation != "" {
-		query = fmt.Sprintf("%s by (%s) (%s)", metric.Config.Aggregation, strings.Join(metric.Config.AggregateBy, ","), query)
-	}
-
+func newTimeSeriesPanel(dataSource *sdk.DatasourceRef, selector string, metric generator.Metric) *sdk.Panel {
+	query := metric.PromQlQuery(selector, rateIntervalVariable)
 	panel := sdk.NewTimeseries(panelNameFromQuery(query))
 	panel.Description = &metric.Help
 	panel.Datasource = &sdk.DatasourceRef{
@@ -101,17 +80,17 @@ func newTimeSeriesPanel(dataSource *sdk.DatasourceRef, selector string, metric m
 	})
 
 	if metric.Config.MaxFromMetric != "" {
-		addLimitTarget(panel, maxLimit, metric.Config.MaxFromMetric, selector)
+		addLimitTarget(panel, generator.LimitMax, metric.Config.MaxFromMetric, selector)
 	}
 	if metric.Config.MinFromMetric != "" {
-		addLimitTarget(panel, minLimit, metric.Config.MinFromMetric, selector)
+		addLimitTarget(panel, generator.LimitMin, metric.Config.MinFromMetric, selector)
 	}
 
 	return panel
 }
 
-func newHeatmapPanel(dataSource *sdk.DatasourceRef, selector string, metric model.Metric) *sdk.Panel {
-	query := fmt.Sprintf("sum(rate(%s%s[%s])) by (%s)", metric.Name, selector, rateIntervalVariable, strings.Join(append(metric.Config.AggregateBy, "le"), ","))
+func newHeatmapPanel(dataSource *sdk.DatasourceRef, selector string, metric generator.Metric) *sdk.Panel {
+	query := metric.PromQlQuery(selector, rateIntervalVariable)
 	panel := sdk.NewHeatmap(panelNameFromQuery(query))
 	panel.Description = &metric.Help
 	panel.HeatmapPanel.HideZeroBuckets = true
@@ -142,7 +121,7 @@ func newHeatmapPanel(dataSource *sdk.DatasourceRef, selector string, metric mode
 	return panel
 }
 
-func newInfoPanel(dataSource *sdk.DatasourceRef, selector string, metric model.Metric) *sdk.Panel {
+func newInfoPanel(dataSource *sdk.DatasourceRef, selector string, metric generator.Metric) *sdk.Panel {
 	panel := sdk.NewTable(metric.Name)
 	panel.Description = &metric.Help
 	panel.TablePanel.FieldConfig.Overrides = []sdk.FieldConfigOverride{
@@ -160,14 +139,14 @@ func newInfoPanel(dataSource *sdk.DatasourceRef, selector string, metric model.M
 	panel.TablePanel.Targets = append(panel.TablePanel.Targets, sdk.Target{
 		Datasource: dataSource,
 		RefID:      metric.Name,
-		Expr:       fmt.Sprintf("%s%s", metric.Name, selector),
+		Expr:       metric.PromQlQuery(selector, rateIntervalVariable),
 		Instant:    true,
 		Format:     "table",
 	})
 	return panel
 }
 
-func newPanel(dataSource *sdk.DatasourceRef, selector string, metric model.Metric) *sdk.Panel {
+func newPanel(dataSource *sdk.DatasourceRef, selector string, metric generator.Metric) *sdk.Panel {
 	switch metric.MetricType {
 	case "gauge":
 		return newTimeSeriesPanel(dataSource, selector, metric)

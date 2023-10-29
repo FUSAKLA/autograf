@@ -14,7 +14,6 @@ import (
 
 	"github.com/fusakla/autograf/packages/generator"
 	"github.com/fusakla/autograf/packages/grafana"
-	"github.com/fusakla/autograf/packages/model"
 	"github.com/fusakla/autograf/packages/prometheus"
 )
 
@@ -42,7 +41,7 @@ func openInBrowser(url string) error {
 }
 
 func (r *Command) Run(ctx *Context) error {
-	var metrics map[string]*model.Metric
+	var metrics map[string]*generator.Metric
 	if r.MetricsFile != "" {
 		var data []byte
 		var err error
@@ -79,7 +78,8 @@ func (r *Command) Run(ctx *Context) error {
 	if err := prometheus.ProcessMetrics(metrics); err != nil {
 		return err
 	}
-	dashboard, err := generator.Generate(strings.TrimSpace(r.GrafanaDashboardName), strings.TrimSpace(r.GrafanaDataSource), strings.TrimSpace(r.Selector), r.GrafanaVariables, metrics)
+	pseudoDashboard := generator.NewPseudoDashboardFromMetrics(metrics)
+	grafanaDashboard, err := grafana.NewDashboard(strings.TrimSpace(r.GrafanaDashboardName), strings.TrimSpace(r.GrafanaDataSource), strings.TrimSpace(r.Selector), r.GrafanaVariables, pseudoDashboard)
 	if err != nil {
 		return err
 	}
@@ -92,7 +92,7 @@ func (r *Command) Run(ctx *Context) error {
 		if err != nil {
 			return err
 		}
-		dashboardUrl, err := cli.UpsertDashboard(folderUid, dashboard)
+		dashboardUrl, err := cli.UpsertDashboard(folderUid, grafanaDashboard)
 		if err != nil {
 			return err
 		}
@@ -103,7 +103,7 @@ func (r *Command) Run(ctx *Context) error {
 			}
 		}
 	} else {
-		jsonData, err := json.Marshal(dashboard)
+		jsonData, err := json.Marshal(grafanaDashboard)
 		if err != nil {
 			return err
 		}

@@ -4,41 +4,41 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fusakla/autograf/packages/model"
+	"github.com/fusakla/autograf/packages/generator"
 )
 
-func guessMetricType(metric *model.Metric) {
+func guessMetricType(metric *generator.Metric) {
 	if strings.HasSuffix(metric.Name, "_total") {
-		metric.MetricType = model.MetricTypeCounter
+		metric.MetricType = generator.MetricTypeCounter
 	}
 	if strings.HasSuffix(metric.Name, "_info") || strings.HasSuffix(metric.Name, "_labels") {
-		metric.MetricType = model.MetricTypeInfo
+		metric.MetricType = generator.MetricTypeInfo
 	}
-	if metric.MetricType == model.MetricTypeHistogram && (strings.HasSuffix(string(metric.Name), "_sum") || strings.HasSuffix(string(metric.Name), "_count")) {
-		metric.MetricType = model.MetricTypeCounter
+	if metric.MetricType == generator.MetricTypeHistogram && (strings.HasSuffix(string(metric.Name), "_sum") || strings.HasSuffix(string(metric.Name), "_count")) {
+		metric.MetricType = generator.MetricTypeCounter
 	}
 }
 
-func guessMetricUnit(metric *model.Metric) {
+func guessMetricUnit(metric *generator.Metric) {
 	if strings.Contains(metric.Name, "_cpu_seconds") {
-		metric.Unit = model.MetricUnitNone
+		metric.Unit = generator.MetricUnitNone
 	} else if strings.Contains(metric.Name, "_seconds") {
-		metric.Unit = model.MetricUnitSeconds
+		metric.Unit = generator.MetricUnitSeconds
 	} else if strings.Contains(metric.Name, "_bytes") {
-		metric.Unit = model.MetricUnitsBytes
+		metric.Unit = generator.MetricUnitsBytes
 	} else if strings.Contains(metric.Name, "_volt") {
-		metric.Unit = model.MetricUnitsVolt
+		metric.Unit = generator.MetricUnitsVolt
 	} else if strings.Contains(metric.Name, "_ampere") {
-		metric.Unit = model.MetricUnitsAmpere
+		metric.Unit = generator.MetricUnitsAmpere
 	} else if strings.Contains(metric.Name, "_hertz") {
-		metric.Unit = model.MetricUnitsHertz
+		metric.Unit = generator.MetricUnitsHertz
 	} else if strings.Contains(metric.Name, "_celsius") {
-		metric.Unit = model.MetricUnitsCelsius
+		metric.Unit = generator.MetricUnitsCelsius
 	}
 
 }
 
-func dropCreatedMetrics(metrics map[string]*model.Metric) {
+func dropCreatedMetrics(metrics map[string]*generator.Metric) {
 	for k := range metrics {
 		metricName := strings.TrimSuffix(k, "_created")
 		if k == metricName {
@@ -59,16 +59,17 @@ func dropCreatedMetrics(metrics map[string]*model.Metric) {
 	}
 }
 
-func ProcessMetrics(metrics map[string]*model.Metric) error {
+func ProcessMetrics(metrics map[string]*generator.Metric) error {
 	var err error
 	dropCreatedMetrics(metrics)
 	for _, metric := range metrics {
 		guessMetricUnit(metric)
 		guessMetricType(metric)
-		metric.Config, err = model.LoadConfigFromHelp(metric.Help)
+		metric.Config, err = generator.LoadConfigFromHelp(metric.Help)
 		if err != nil {
 			return fmt.Errorf("failed to parse autograf config in metric HELP: %w", err)
 		}
+		metric.Threshold = metric.Config.ThresholdMetric()
 	}
 	return nil
 }
