@@ -4,7 +4,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/fusakla/autograf/packages/generator"
+	"github.com/fusakla/autograf/pkg/generator"
 	"github.com/prometheus/prometheus/model/textparse"
 )
 

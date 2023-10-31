@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/fusakla/autograf/packages/generator"
+	"github.com/fusakla/autograf/pkg/generator"
 	"github.com/fusakla/sdk"
 	"golang.org/x/exp/maps"
 )

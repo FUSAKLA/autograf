@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fusakla/autograf/packages/generator"
-	"github.com/fusakla/autograf/packages/grafana"
-	"github.com/fusakla/autograf/packages/prometheus"
+	"github.com/fusakla/autograf/pkg/generator"
+	"github.com/fusakla/autograf/pkg/grafana"
+	"github.com/fusakla/autograf/pkg/prometheus"
 )
 
 type AuthenticatedTransport struct {

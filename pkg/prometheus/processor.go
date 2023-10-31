@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fusakla/autograf/packages/generator"
+	"github.com/fusakla/autograf/pkg/generator"
 )
 
 func guessMetricType(metric *generator.Metric) {

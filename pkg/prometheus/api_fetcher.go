@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/fusakla/autograf/packages/generator"
+	"github.com/fusakla/autograf/pkg/generator"
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
