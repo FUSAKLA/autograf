@@ -28,7 +28,7 @@ build:
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $(AUTOGRAF_BIN)
 
 goreleaser-build:
-	goreleaser build --snapshot --rm-dist
+	goreleaser release --snapshot --clean
 
 docker: build
 	docker build -t fusakla/autograf .

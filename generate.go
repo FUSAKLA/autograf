@@ -73,7 +73,7 @@ func (r *Command) Run(ctx *Context) error {
 			return err
 		}
 	} else {
-		return fmt.Errorf("At least one of inputs metrics file or Prometheus URL is required")
+		return fmt.Errorf("at least one of inputs metrics file or Prometheus URL is required")
 	}
 	if err := prometheus.ProcessMetrics(metrics); err != nil {
 		return err

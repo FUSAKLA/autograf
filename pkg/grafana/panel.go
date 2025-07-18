@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/fusakla/autograf/packages/generator"
+	"github.com/fusakla/autograf/pkg/generator"
 	"github.com/fusakla/sdk"
 )
 
@@ -93,8 +93,8 @@ func newHeatmapPanel(dataSource *sdk.DatasourceRef, selector string, metric gene
 	query := metric.PromQlQuery(selector, rateIntervalVariable)
 	panel := sdk.NewHeatmap(panelNameFromQuery(query))
 	panel.Description = &metric.Help
-	panel.HeatmapPanel.HideZeroBuckets = true
-	panel.HeatmapPanel.DataFormat = "tsbuckets"
+	panel.HideZeroBuckets = true
+	panel.DataFormat = "tsbuckets"
 	panel.HeatmapPanel.FieldConfig.Defaults.Unit = string(metric.Unit)
 	panel.HeatmapPanel.Options.Tooltip.Show = true
 	panel.HeatmapPanel.Options.Tooltip.ShowHistogram = true
@@ -106,8 +106,8 @@ func newHeatmapPanel(dataSource *sdk.DatasourceRef, selector string, metric gene
 	panel.HeatmapPanel.Options.Color.Fill = "super-light-blue"
 	panel.HeatmapPanel.Options.CellGap = 1
 	panel.HeatmapPanel.Options.Legend.Show = true
-	panel.HeatmapPanel.CellGap = 1
-	panel.HeatmapPanel.CellValues.Unit = "number"
+	panel.CellGap = 1
+	panel.CellValues.Unit = "number"
 	panel.Span = metric.Config.Width
 	panel.Height = metric.Config.Height * panelHeightCoeficient
 	panel.HeatmapPanel.Targets = append(panel.HeatmapPanel.Targets, sdk.Target{

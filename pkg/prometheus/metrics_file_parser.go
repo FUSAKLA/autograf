@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/fusakla/autograf/pkg/generator"
+	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/textparse"
 )
 
@@ -58,7 +60,7 @@ func ParseMetricsText(text []byte, openMetrics bool) (map[string]*generator.Metr
 	if openMetrics {
 		contentType = "application/openmetrics-text"
 	}
-	p, err := textparse.New(text, contentType, true)
+	p, err := textparse.New(text, contentType, true, labels.NewSymbolTable())
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +76,7 @@ func ParseMetricsText(text []byte, openMetrics bool) (map[string]*generator.Metr
 		switch entryType {
 		case textparse.EntryType:
 			mName, mType := p.Type()
-			if mType == textparse.MetricTypeHistogram {
+			if mType == model.MetricTypeHistogram {
 				histograms = append(histograms, string(mName))
 			}
 			metrics.add(generator.Metric{Name: string(mName), MetricType: generator.MetricType(mType)})

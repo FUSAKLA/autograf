@@ -59,7 +59,7 @@ func (t *metricsTree) metricGroups() map[string][]*Metric {
 func (t metricsTree) String() string {
 	indent := strings.Repeat(" ", t.level)
 	out := ""
-	out += fmt.Sprintf(indent + t.prefix + "\n")
+	out += indent + t.prefix + "\n"
 	if t.metric != nil {
 		out += fmt.Sprintf("%s- %v", indent, t.metric)
 	}
