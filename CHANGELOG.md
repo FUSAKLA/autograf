@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+ - Upgraded to Go 1.24
+
 ## [2.2.0] - 2023-07-14
 ### Added
  - New config option `prometheus_bearer_token` to allow authentication with Prometheus using a bearer token
