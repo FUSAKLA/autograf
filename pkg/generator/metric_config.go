@@ -59,7 +59,7 @@ var defaultConfig = MetricConfig{
 	Scale:          "linear",
 	LegendPosition: "bottom",
 	LegendCalcs:    []string{"max", "avg", "last"},
-	Width:          4,
+	Width:          8,
 	Height:         5,
 }
 

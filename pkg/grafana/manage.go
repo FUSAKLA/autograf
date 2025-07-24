@@ -7,7 +7,8 @@ import (
 	"io"
 	"net/url"
 
-	"github.com/fusakla/sdk"
+	"github.com/grafana/grafana-foundation-sdk/go/cog"
+	"github.com/grafana/grafana-foundation-sdk/go/dashboard"
 )
 
 type apiFoldersList []apiFolder
@@ -15,6 +16,30 @@ type apiFoldersList []apiFolder
 type apiFolder struct {
 	Uid   string `json:"uid,omitempty"`
 	Title string `json:"title"`
+}
+
+func (c *client) DatasourceIDByName(name string) (string, error) {
+	resp, err := c.cli.Get(c.url + "/api/datasources")
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode != 200 {
+		b, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("%s %s", resp.Status, b)
+	}
+	var datasources []struct {
+		Uid  string `json:"uid"`
+		Name string `json:"name"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&datasources); err != nil {
+		return "", err
+	}
+	for _, ds := range datasources {
+		if ds.Name == name {
+			return ds.Uid, nil
+		}
+	}
+	return "", fmt.Errorf("datasource %q not found", name)
 }
 
 func (c *client) createFolder(name string) (string, error) {
@@ -65,8 +90,8 @@ type apiDashbaordResp struct {
 	Url string `json:"url"`
 }
 
-func (c *client) UpsertDashboard(folderUid string, dashboard *sdk.Board) (string, error) {
-	dashboard.ID = 0
+func (c *client) UpsertDashboard(folderUid string, dashboard dashboard.Dashboard) (string, error) {
+	dashboard.Id = cog.ToPtr(int64(0)) // 0 means new dashboard
 	data, err := json.Marshal(apiDashboard{FolderUid: folderUid, Overwrite: true, Dashboard: dashboard})
 	if err != nil {
 		return "", err

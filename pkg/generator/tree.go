@@ -2,6 +2,8 @@ package generator
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 	"strings"
 )
 
@@ -86,7 +88,8 @@ func (t *metricsTree) add(metric *Metric) {
 func groupIntoPseudoDashboard(metrics map[string]*Metric) PseudoDashboard {
 	tree := newTree("", 0)
 	dashboard := PseudoDashboard{}
-	for _, m := range metrics {
+	for _, mName := range slices.Sorted(maps.Keys(metrics)) {
+		m := metrics[mName]
 		if m.Config.Row != "" {
 			dashboard.AddRowPanels(m.Config.Row, []*Metric{m})
 			continue

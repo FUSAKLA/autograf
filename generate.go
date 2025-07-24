@@ -15,6 +15,8 @@ import (
 	"github.com/fusakla/autograf/pkg/generator"
 	"github.com/fusakla/autograf/pkg/grafana"
 	"github.com/fusakla/autograf/pkg/prometheus"
+	"github.com/grafana/grafana-foundation-sdk/go/cog"
+	"github.com/grafana/grafana-foundation-sdk/go/dashboard"
 )
 
 type AuthenticatedTransport struct {
@@ -79,9 +81,13 @@ func (r *Command) Run(ctx *Context) error {
 		return err
 	}
 	pseudoDashboard := generator.NewPseudoDashboardFromMetrics(metrics)
-	grafanaDashboard, err := grafana.NewDashboard(strings.TrimSpace(r.GrafanaDashboardName), strings.TrimSpace(r.GrafanaDataSource), strings.TrimSpace(r.Selector), r.GrafanaVariables, pseudoDashboard)
+	grafanaDashboard := grafana.NewDashboard(strings.TrimSpace(r.GrafanaDashboardName), strings.TrimSpace(r.GrafanaDataSource), strings.TrimSpace(r.Selector), r.GrafanaVariables, pseudoDashboard)
+	if grafanaDashboard == nil {
+		return fmt.Errorf("error creating Grafana dashboard")
+	}
+	renderedGrafanaDashboard, err := grafanaDashboard.Build()
 	if err != nil {
-		return err
+		return fmt.Errorf("error building Grafana dashboard: %w", err)
 	}
 	if r.GrafanaURL != "" {
 		if r.grafanaToken == "" {
@@ -92,7 +98,19 @@ func (r *Command) Run(ctx *Context) error {
 		if err != nil {
 			return err
 		}
-		dashboardUrl, err := cli.UpsertDashboard(folderUid, grafanaDashboard)
+
+		// To make datasource variable work, we need to set also the datasource ID not just name.
+		datasourceID, err := cli.DatasourceIDByName(strings.TrimSpace(r.GrafanaDataSource))
+		if err != nil {
+			return fmt.Errorf("error getting datasource ID: %w", err)
+		}
+		for i, tv := range renderedGrafanaDashboard.Templating.List {
+			if tv.Type == "datasource" {
+				renderedGrafanaDashboard.Templating.List[i].Current.Value = dashboard.StringOrArrayOfString{String: cog.ToPtr(datasourceID)}
+			}
+		}
+
+		dashboardUrl, err := cli.UpsertDashboard(folderUid, renderedGrafanaDashboard)
 		if err != nil {
 			return err
 		}
@@ -103,7 +121,7 @@ func (r *Command) Run(ctx *Context) error {
 			}
 		}
 	} else {
-		jsonData, err := json.Marshal(grafanaDashboard)
+		jsonData, err := json.Marshal(renderedGrafanaDashboard)
 		if err != nil {
 			return err
 		}
