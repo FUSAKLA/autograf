@@ -79,19 +79,19 @@ Flags:
 
 ### Loading data from all metrics exposed by app
 ```bash
-curl -q http://demo.robustperception.io:9090/metrics | ./autograf --metrics-file -
+curl -q https://prometheus.demo.prometheus.io/metrics | ./autograf --metrics-file -
 ```
 
 ### Loading data from live Prometheus instance
 Print Grafana dashboard JSON for all metrics matching selector `{instance="demo.do.prometheus.io:9090",
 job="prometheus"}` from the configured Prometheus instance.
 ```bash
-autograf --prometheus-url http://demo.robustperception.io:9090 --selector '{instance="demo.do.prometheus.io:9090", job="prometheus"}'
+autograf --prometheus-url https://prometheus.demo.prometheus.io --selector '{instance="demo.do.prometheus.io:9090", job="prometheus"}'
 ```
 
 ### Uploading dashboard directly to Grafana
 ```bash
-GRAFANA_TOKEN="xxx" autograf --prometheus-url http://demo.robustperception.io:9090 --selector '{instance="demo.do.prometheus.io:9090", job="prometheus"}' --grafana-url https://foo.bar --grafana-folder test
+GRAFANA_TOKEN="xxx" autograf --prometheus-url https://prometheus.demo.prometheus.io --selector '{instance="demo.do.prometheus.io:9090", job="prometheus"}' --grafana-url https://foo.bar --grafana-folder test
 Dashboard successfully generated, see https://grafana.foo.bar/d/ygUo8se7k/autograf-dashboard
 ```
 
@@ -103,7 +103,7 @@ See the [example](./examples/demo/autograf.json) used in the demo.
 ### Config file syntax
 ```json
 {
-    "prometheus_url": "http://demo.robustperception.io:9090",
+    "prometheus_url": "https://prometheus.demo.prometheus.io",
     "prometheus_bearer_token": "xxx",
 
     "grafana_url": "https://grafana.foo.bar",
@@ -111,7 +111,7 @@ See the [example](./examples/demo/autograf.json) used in the demo.
     "grafana_folder": "FUSAKLAS garbage",
     "grafana_datasource": "Prometheus",
     "grafana_token": "xxx",
-    
+
     "open_browser": true
 }
 ```
