@@ -5,12 +5,18 @@ import (
 	"regexp"
 
 	"github.com/fusakla/autograf/pkg/generator"
-	"github.com/fusakla/sdk"
+	"github.com/grafana/grafana-foundation-sdk/go/cog"
+	"github.com/grafana/grafana-foundation-sdk/go/common"
+	"github.com/grafana/grafana-foundation-sdk/go/dashboard"
+	"github.com/grafana/grafana-foundation-sdk/go/heatmap"
+	"github.com/grafana/grafana-foundation-sdk/go/prometheus"
+	"github.com/grafana/grafana-foundation-sdk/go/table"
+	"github.com/grafana/grafana-foundation-sdk/go/timeseries"
 )
 
 const (
 	timeSeriesFormat      = "time_series"
-	panelHeightCoeficient = 40
+	panelHeightCoeficient = 1
 	rateIntervalVariable  = "$__rate_interval"
 )
 
@@ -18,66 +24,63 @@ func panelNameFromQuery(query string) string {
 	return regexp.MustCompile(`\{[^{}]*\}`).ReplaceAllString(query, "")
 }
 
-func addLimitTarget(panel *sdk.Panel, lType generator.LimitType, metric string, selector string) {
-	panel.TimeseriesPanel.Targets = append(panel.TimeseriesPanel.Targets, sdk.Target{
-		RefID:        metric,
-		Expr:         generator.ThresholdQuery(metric, selector, lType),
-		Instant:      false,
-		LegendFormat: fmt.Sprintf("%s limit", lType),
-		Format:       timeSeriesFormat,
-	})
-	panel.TimeseriesPanel.FieldConfig.Overrides = append(panel.TimeseriesPanel.FieldConfig.Overrides, sdk.FieldConfigOverride{
-		Properties: []sdk.FieldConfigOverrideProperty{
-			{ID: "custom.fillOpacity", Value: 0},
-			{ID: "color", Value: map[string]string{"mode": "fixed", "fixedColor": "red"}},
-			{ID: "custom.lineWidth", Value: 3},
-			{ID: "custom.lineStyle", Value: map[string]string{"fill": "dash"}},
-		},
+func addLimitTarget(panel *timeseries.PanelBuilder, lType generator.LimitType, metric string, selector string) {
+	panel.WithTarget(prometheus.NewDataqueryBuilder().
+		RefId(metric).
+		Expr(generator.ThresholdQuery(metric, selector, lType)).
+		Range().
+		LegendFormat(fmt.Sprintf("%s limit", lType)).
+		Format(prometheus.PromQueryFormatTimeSeries),
+	).OverrideByName(metric, []dashboard.DynamicConfigValue{
+		{Id: "custom.fillOpacity", Value: 0},
+		{Id: "color", Value: map[string]string{"mode": "fixed", "fixedColor": "red"}},
+		{Id: "custom.lineWidth", Value: 3},
+		{Id: "custom.lineStyle", Value: map[string]string{"fill": "dash"}},
 	})
 }
 
-func newTimeSeriesPanel(dataSource *sdk.DatasourceRef, selector string, metric generator.Metric) *sdk.Panel {
+func newTimeSeriesPanel(dataSource dashboard.DataSourceRef, selector string, metric generator.Metric) cog.Builder[dashboard.Panel] {
 	query := metric.PromQlQuery(selector, rateIntervalVariable)
-	panel := sdk.NewTimeseries(panelNameFromQuery(query))
-	panel.Description = &metric.Help
-	panel.Datasource = &sdk.DatasourceRef{
-		LegacyName: "$datasource",
-	}
-	panel.TimeseriesPanel.Options.Legend.ShowLegend = false
-	panel.TimeseriesPanel.Options.Legend.Calcs = metric.Config.LegendCalcs
-	panel.TimeseriesPanel.Options.Legend.DisplayMode = "table"
-	panel.TimeseriesPanel.FieldConfig.Defaults.Unit = string(metric.Unit)
-	panel.TimeseriesPanel.Options.Tooltip.Mode = "single"
-	panel.TimeseriesPanel.Options.Tooltip.Sort = "desc"
-	panel.TimeseriesPanel.FieldConfig.Defaults.Custom.LineWidth = metric.Config.LineWidth
-	panel.TimeseriesPanel.FieldConfig.Defaults.Custom.DrawStyle = "line"
-	panel.TimeseriesPanel.FieldConfig.Defaults.Custom.LineStyle.Fill = "solid"
-	panel.TimeseriesPanel.FieldConfig.Defaults.Custom.ShowPoints = "auto"
-	panel.TimeseriesPanel.FieldConfig.Defaults.Custom.PointSize = 1
+	panel := timeseries.NewPanelBuilder().
+		Title(panelNameFromQuery(query)).
+		Description(metric.Help).
+		Datasource(dataSource).
+		Legend(common.NewVizLegendOptionsBuilder().
+			DisplayMode(common.LegendDisplayModeTable).
+			Calcs(metric.Config.LegendCalcs).
+			ShowLegend(false)).
+		Unit(string(metric.Unit)).
+		Tooltip(common.NewVizTooltipOptionsBuilder().
+			Mode(common.TooltipDisplayModeSingle).
+			Sort(common.SortOrderDescending),
+		).LineWidth(float64(metric.Config.LineWidth)).
+		LineStyle(common.NewLineStyleBuilder().
+			Fill("solid"),
+		).DrawStyle("line").
+		ShowPoints("auto").
+		PointSize(1).
+		Span(uint32(metric.Config.Width)).
+		Height(uint32(metric.Config.Height * panelHeightCoeficient))
+
 	if metric.Config.Stack {
-		panel.TimeseriesPanel.FieldConfig.Defaults.Custom.Stacking.Mode = "normal"
+		panel.Stacking(common.NewStackingConfigBuilder().Mode("normal"))
 	}
-	panel.Span = metric.Config.Width
-	panel.Height = metric.Config.Height * panelHeightCoeficient
 
 	switch metric.Config.Scale {
 	case "linear":
-		panel.TimeseriesPanel.FieldConfig.Defaults.Custom.ScaleDistribution.Type = "linear"
+		panel.ScaleDistribution(common.NewScaleDistributionConfigBuilder().Type(common.ScaleDistributionLinear))
 	case "log2":
-		panel.TimeseriesPanel.FieldConfig.Defaults.Custom.ScaleDistribution.Type = "log"
-		panel.TimeseriesPanel.FieldConfig.Defaults.Custom.ScaleDistribution.Log = 2
+		panel.ScaleDistribution(common.NewScaleDistributionConfigBuilder().Type(common.ScaleDistributionLog).Log(2))
 	case "log10":
-		panel.TimeseriesPanel.FieldConfig.Defaults.Custom.ScaleDistribution.Type = "log"
-		panel.TimeseriesPanel.FieldConfig.Defaults.Custom.ScaleDistribution.Log = 10
+		panel.ScaleDistribution(common.NewScaleDistributionConfigBuilder().Type(common.ScaleDistributionLog).Log(10))
 	}
 
-	panel.TimeseriesPanel.Targets = append(panel.TimeseriesPanel.Targets, sdk.Target{
-		Datasource: dataSource,
-		RefID:      metric.Name,
-		Expr:       query,
-		Instant:    false,
-		Format:     "time_series",
-	})
+	panel.WithTarget(prometheus.NewDataqueryBuilder().Datasource(dataSource).
+		RefId(metric.Name).
+		Expr(query).
+		Range().
+		Format(prometheus.PromQueryFormatTimeSeries),
+	)
 
 	if metric.Config.MaxFromMetric != "" {
 		addLimitTarget(panel, generator.LimitMax, metric.Config.MaxFromMetric, selector)
@@ -89,76 +92,78 @@ func newTimeSeriesPanel(dataSource *sdk.DatasourceRef, selector string, metric g
 	return panel
 }
 
-func newHeatmapPanel(dataSource *sdk.DatasourceRef, selector string, metric generator.Metric) *sdk.Panel {
+func newHeatmapPanel(dataSource dashboard.DataSourceRef, selector string, metric generator.Metric) cog.Builder[dashboard.Panel] {
 	query := metric.PromQlQuery(selector, rateIntervalVariable)
-	panel := sdk.NewHeatmap(panelNameFromQuery(query))
-	panel.Description = &metric.Help
-	panel.HideZeroBuckets = true
-	panel.DataFormat = "tsbuckets"
-	panel.HeatmapPanel.FieldConfig.Defaults.Unit = string(metric.Unit)
-	panel.HeatmapPanel.Options.Tooltip.Show = true
-	panel.HeatmapPanel.Options.Tooltip.ShowHistogram = true
-	panel.HeatmapPanel.Options.Calculate = false
-	panel.HeatmapPanel.Options.YAxis.AxisPlacement = "left"
-	panel.HeatmapPanel.Options.YAxis.Unit = string(metric.Unit)
-	panel.HeatmapPanel.Options.Color.Mode = "opacity"
-	panel.HeatmapPanel.Options.Color.Exponent = 0.3
-	panel.HeatmapPanel.Options.Color.Fill = "super-light-blue"
-	panel.HeatmapPanel.Options.CellGap = 1
-	panel.HeatmapPanel.Options.Legend.Show = true
-	panel.CellGap = 1
-	panel.CellValues.Unit = "number"
-	panel.Span = metric.Config.Width
-	panel.Height = metric.Config.Height * panelHeightCoeficient
-	panel.HeatmapPanel.Targets = append(panel.HeatmapPanel.Targets, sdk.Target{
-		Datasource:   dataSource,
-		RefID:        metric.Name,
-		Expr:         query,
-		Instant:      false,
-		Format:       "heatmap",
-		LegendFormat: "{{le}}",
-	})
+
+	panel := heatmap.NewPanelBuilder().
+		Title(panelNameFromQuery(query)).
+		Description(metric.Help).
+		Unit(string(metric.Unit)).
+		Datasource(dataSource).
+		ShowLegend().
+		Calculate(false).
+		Color(heatmap.NewHeatmapColorOptionsBuilder().
+			Mode(heatmap.HeatmapColorModeOpacity).
+			Exponent(0.3).
+			Steps(20).
+			Fill("super-light-blue"),
+		).
+		ShowColorScale(true).
+		ShowYHistogram().
+		YAxis(heatmap.NewYAxisConfigBuilder().
+			AxisPlacement("left").
+			Unit(string(metric.Unit)),
+		).
+		CellGap(1).
+		CellValues(heatmap.NewCellValuesBuilder().Unit("number")).
+		Span(uint32(metric.Config.Width)).
+		Height(uint32(metric.Config.Height * panelHeightCoeficient))
+
+	panel.WithTarget(prometheus.NewDataqueryBuilder().
+		Datasource(dataSource).
+		RefId(metric.Name).
+		Expr(query).
+		Range().
+		Format(prometheus.PromQueryFormatHeatmap).
+		LegendFormat("{{le}}"),
+	)
+
 	return panel
 }
 
-func newInfoPanel(dataSource *sdk.DatasourceRef, selector string, metric generator.Metric) *sdk.Panel {
-	panel := sdk.NewTable(metric.Name)
-	panel.Description = &metric.Help
-	panel.TablePanel.FieldConfig.Overrides = []sdk.FieldConfigOverride{
-		{
-			Matcher: struct {
-				ID      string `json:"id"`
-				Options string `json:"options"`
-			}{ID: "byRegexp", Options: "(__name__|Time|Value)"},
-			Properties: []sdk.FieldConfigOverrideProperty{
-				{ID: "custom.hidden", Value: "true"},
-			},
-		}}
-	panel.Span = 12
-	panel.Height = metric.Config.Height * panelHeightCoeficient
-	panel.TablePanel.Targets = append(panel.TablePanel.Targets, sdk.Target{
-		Datasource: dataSource,
-		RefID:      metric.Name,
-		Expr:       metric.PromQlQuery(selector, rateIntervalVariable),
-		Instant:    true,
-		Format:     "table",
-	})
+func newInfoPanel(dataSource dashboard.DataSourceRef, selector string, metric generator.Metric) cog.Builder[dashboard.Panel] {
+	panel := table.NewPanelBuilder().
+		DisplayName(panelNameFromQuery(metric.Name)).
+		Description(metric.Help).
+		OverrideByRegexp(
+			"(__name__|Time|Value)",
+			[]dashboard.DynamicConfigValue{{Id: "custom.hidden", Value: true}},
+		).
+		Span(24).
+		Height(uint32(metric.Config.Height * panelHeightCoeficient)).
+		WithTarget(prometheus.NewDataqueryBuilder().
+			Datasource(dataSource).
+			RefId(metric.Name).
+			Expr(metric.PromQlQuery(selector, rateIntervalVariable)).
+			Instant().
+			Format(prometheus.PromQueryFormatTable),
+		)
 	return panel
 }
 
-func newPanel(dataSource *sdk.DatasourceRef, selector string, metric generator.Metric) *sdk.Panel {
+func newPanel(dataSource dashboard.DataSourceRef, selector string, metric generator.Metric) (cog.Builder[dashboard.Panel], bool) {
 	switch metric.MetricType {
 	case "gauge":
-		return newTimeSeriesPanel(dataSource, selector, metric)
+		return newTimeSeriesPanel(dataSource, selector, metric), false
 	case "counter":
-		return newTimeSeriesPanel(dataSource, selector, metric)
+		return newTimeSeriesPanel(dataSource, selector, metric), false
 	case "summary":
-		return newTimeSeriesPanel(dataSource, selector, metric)
+		return newTimeSeriesPanel(dataSource, selector, metric), false
 	case "histogram":
-		return newHeatmapPanel(dataSource, selector, metric)
+		return newHeatmapPanel(dataSource, selector, metric), false
 	case "info":
-		return newInfoPanel(dataSource, selector, metric)
+		return newInfoPanel(dataSource, selector, metric), true
 	}
 	metric.Help = fmt.Sprintf("WARNING: Unknown metric type %s!\n\n%s", metric.MetricType, metric.Help)
-	return newTimeSeriesPanel(dataSource, selector, metric)
+	return newTimeSeriesPanel(dataSource, selector, metric), false
 }

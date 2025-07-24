@@ -6,18 +6,16 @@ import (
 	"strings"
 
 	"github.com/fusakla/autograf/pkg/generator"
-	"github.com/fusakla/sdk"
-	"golang.org/x/exp/maps"
+	"github.com/grafana/grafana-foundation-sdk/go/cog"
+	"github.com/grafana/grafana-foundation-sdk/go/dashboard"
 )
 
-func newRow(dataSource *sdk.DatasourceRef, selector string, name string, metrics []*generator.Metric) *sdk.Row {
-	row := sdk.Row{
-		Title:    name,
-		Collapse: true,
-	}
+func newRow(dataSource dashboard.DataSourceRef, selector string, name string, metrics []*generator.Metric) cog.Builder[dashboard.RowPanel] {
+	row := dashboard.NewRowBuilder(name).Collapsed(true)
 	metricNames := []string{}
 	metricNamesChars := 0
 	trimMetricNames := false
+	panels := []cog.Builder[dashboard.Panel]{}
 	for _, m := range metrics {
 		mName := strings.TrimPrefix(m.Name, name)
 		if metricNamesChars+len(mName) < 150 {
@@ -29,20 +27,24 @@ func newRow(dataSource *sdk.DatasourceRef, selector string, name string, metrics
 		if len(metrics) == 1 {
 			m.Config.Width = 12
 		}
-		if m.MetricType == generator.MetricTypeInfo {
-			row.Panels = append([]sdk.Panel{*newPanel(dataSource, selector, *m)}, row.Panels...)
+		panel, isInfo := newPanel(dataSource, selector, *m)
+		if isInfo {
+			panels = append([]cog.Builder[dashboard.Panel]{panel}, panels...)
 		} else {
-			row.Panels = append(row.Panels, *newPanel(dataSource, selector, *m))
+			panels = append(panels, panel)
 		}
-
+	}
+	for _, p := range panels {
+		row = row.WithPanel(p)
 	}
 	if len(metricNames) > 1 {
-		row.Title += " ❯ " + strings.Join(metricNames, " ❙ ")
+		newTitle := name + " ❯ " + strings.Join(metricNames, " ❙ ")
 		if trimMetricNames {
-			row.Title += " | ..."
+			newTitle += " | ..."
 		}
+		row = row.Title(newTitle)
 	}
-	return &row
+	return row
 }
 
 func selectorWithVariablesFilter(selector string, filerVariables []string) string {
@@ -57,63 +59,49 @@ func selectorWithVariablesFilter(selector string, filerVariables []string) strin
 	return new + strings.Join(filters, ",") + "}"
 }
 
-func labelVariable(datasourceName *sdk.DatasourceRef, selector, name string) sdk.TemplateVar {
+func labelVariable(datasource dashboard.DataSourceRef, selector, name string) *dashboard.QueryVariableBuilder {
 	if selector == "" {
 		selector = "up"
 	}
-	return sdk.TemplateVar{
-		Name: name,
-		Type: "query",
-		Datasource: &sdk.DatasourceRef{
-			Type: "prometheus",
-			UID:  "${datasource}",
-		},
-		Query: struct {
-			Query string `json:"query"`
-			RefId string `json:"refId"`
-		}{
-			Query: fmt.Sprintf("query_result(%s)", selector),
-			RefId: "StandardVariableQuery",
-		},
-		Regex:      fmt.Sprintf(`/%s="([^"]+)"/`, name),
-		AllValue:   ".*",
-		Options:    []sdk.Option{},
-		IncludeAll: true,
-		Multi:      true,
-		Sort:       1, // Alphabetical ASC
-	}
+	return dashboard.NewQueryVariableBuilder(name).
+		Datasource(datasource).
+		Query(dashboard.StringOrMap{String: cog.ToPtr(fmt.Sprintf("label_values(%s, %s)", selector, name))}).
+		// Regex(fmt.Sprintf(`/%s="([^"]+)"/`, name)).
+		AllValue(".*").
+		IncludeAll(true).
+		Multi(true).
+		Sort(dashboard.VariableSortAlphabeticalAsc).
+		Refresh(dashboard.VariableRefreshOnTimeRangeChanged)
 }
 
-func NewDashboard(name, datasourceName, selector string, filterVariables []string, pseudoDashboard generator.PseudoDashboard) (*sdk.Board, error) {
-	board := sdk.NewBoard(name)
-	board.Refresh = &sdk.BoolString{Flag: true, Value: "1m"}
-	board.GraphTooltip = 1 // 0 for no shared crosshair or tooltip (default), 1 for shared crosshair, 2 for shared crosshair AND shared tooltip
-	board.Tags = []string{"autograf", "generated"}
-	board.Time = sdk.Time{From: "now-1h", To: "now"}
-	board.Timezone = "browser"
-	var refresh int64 = 1
-	board.Templating.List = []sdk.TemplateVar{
-		{
-			Type:    "datasource",
-			Name:    "datasource",
-			Label:   "Datasource",
-			Query:   "prometheus",
-			Refresh: sdk.BoolInt{Flag: true, Value: &refresh},
-			Options: []sdk.Option{},
-			Current: sdk.Current{
-				Text:     &sdk.StringSliceString{Valid: true, Value: []string{datasourceName}},
-				Selected: true,
-				Value:    datasourceName,
-			},
-		},
-	}
+func NewDashboard(name, datasourceID, selector string, filterVariables []string, pseudoDashboard generator.PseudoDashboard) *dashboard.DashboardBuilder {
+	board := dashboard.NewDashboardBuilder(name).
+		Refresh("1m").
+		Tooltip(dashboard.DashboardCursorSyncCrosshair).
+		Tags([]string{"autograf", "generated"}).
+		Time("now-1h", "now").
+		Timezone("browser").
+		WithVariable(
+			dashboard.NewDatasourceVariableBuilder("datasource").
+				Label("Datasource").
+				Type("prometheus").
+				Current(dashboard.VariableOption{
+					Value:    dashboard.StringOrArrayOfString{String: cog.ToPtr(datasourceID)},
+					Selected: cog.ToPtr(true),
+				}),
+		)
+	datasource := dashboard.DataSourceRef{Type: cog.ToPtr("prometheus"), Uid: cog.ToPtr("${datasource}")}
+
 	for _, v := range filterVariables {
-		board.Templating.List = append(board.Templating.List, labelVariable(&sdk.DatasourceRef{UID: "${datasource}"}, selector, v))
+		board = board.WithVariable(labelVariable(datasource, selector, v))
 	}
-	rowNames := maps.Keys(pseudoDashboard.Rows)
+	rowNames := make([]string, 0, len(pseudoDashboard.Rows))
+	for k := range pseudoDashboard.Rows {
+		rowNames = append(rowNames, k)
+	}
 	slices.Sort(rowNames)
 	for _, r := range rowNames {
-		board.Rows = append(board.Rows, newRow(&sdk.DatasourceRef{Type: "prometheus", UID: "${datasource}"}, selectorWithVariablesFilter(selector, filterVariables), r, pseudoDashboard.Rows[r].Metrics))
+		board = board.WithRow(newRow(datasource, selectorWithVariablesFilter(selector, filterVariables), r, pseudoDashboard.Rows[r].Metrics))
 	}
-	return board, nil
+	return board
 }

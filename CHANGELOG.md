@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+ - :tada: Switched to the new Grafana Foundation SDK https://grafana.github.io/grafana-foundation-sdk/
+   - This may lead to some changes in the generated dashboards, please report any issues you encounter.
+   - Formerly not working heatmap panel should now work correctly now.
  - Upgraded to Go 1.24
 
 ## [2.2.0] - 2023-07-14
