@@ -1,117 +1,82 @@
 package grafana
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/url"
 
+	"github.com/go-openapi/strfmt"
+	"github.com/gosimple/slug"
 	"github.com/grafana/grafana-foundation-sdk/go/cog"
 	"github.com/grafana/grafana-foundation-sdk/go/dashboard"
+	grafanaClient "github.com/grafana/grafana-openapi-client-go/client"
+	"github.com/grafana/grafana-openapi-client-go/client/folders"
+	"github.com/grafana/grafana-openapi-client-go/models"
 )
 
-type apiFoldersList []apiFolder
+func NewClient(urlStr string, token string) *client {
+	url, _ := url.Parse(urlStr)
+	fmt.Println("Connecting to Grafana at", url.String())
+	return &client{
+		grafanaCli: grafanaClient.NewHTTPClientWithConfig(strfmt.Default, &grafanaClient.TransportConfig{
+			Host:     url.Host,
+			BasePath: url.Path + "/api",
+			Schemes:  []string{url.Scheme},
+			APIKey:   token,
+			// Debug:    true,
+		}),
+		url: url.String(),
+	}
+}
 
-type apiFolder struct {
-	Uid   string `json:"uid,omitempty"`
-	Title string `json:"title"`
+type client struct {
+	url        string
+	grafanaCli *grafanaClient.GrafanaHTTPAPI
 }
 
 func (c *client) DatasourceIDByName(name string) (string, error) {
-	resp, err := c.cli.Get(c.url + "/api/datasources")
+	resp, err := c.grafanaCli.Datasources.GetDataSourceByName(name)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error getting data sources: %w", err)
 	}
-	if resp.StatusCode != 200 {
-		b, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("%s %s", resp.Status, b)
-	}
-	var datasources []struct {
-		Uid  string `json:"uid"`
-		Name string `json:"name"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&datasources); err != nil {
-		return "", err
-	}
-	for _, ds := range datasources {
-		if ds.Name == name {
-			return ds.Uid, nil
-		}
-	}
-	return "", fmt.Errorf("datasource %q not found", name)
-}
-
-func (c *client) createFolder(name string) (string, error) {
-	data, err := json.Marshal(apiFolder{Title: name})
-	if err != nil {
-		return "", err
-	}
-	resp, err := c.cli.Post(c.url+"/api/folders", "application/json", bytes.NewReader(data))
-	if err != nil {
-		return "", err
-	}
-	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("%s", resp.Body)
-	}
-	var folder apiFolder
-	if err := json.NewDecoder(resp.Body).Decode(&folder); err != nil {
-		return "", err
-	}
-	return folder.Uid, nil
+	return resp.Payload.UID, nil
 }
 
 func (c *client) EnsureFolder(name string) (string, error) {
-	resp, err := c.cli.Get(c.url + "/api/folders")
+	resp, err := c.grafanaCli.Folders.GetFolders(&folders.GetFoldersParams{})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error getting folders: %w", err)
 	}
-	if resp.StatusCode != 200 {
-		b, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("%s %s", resp.Status, b)
+	for _, folder := range resp.Payload {
+		if folder.Title == name {
+			return folder.UID, nil
+		}
 	}
-	var folders apiFoldersList
-	if err := json.NewDecoder(resp.Body).Decode(&folders); err != nil {
-		return "", err
+	newFolderResp, err := c.grafanaCli.Folders.CreateFolder(&models.CreateFolderCommand{
+		Title: name,
+	})
+	if err != nil {
+		return "", fmt.Errorf("error creating folder: %w", err)
 	}
-	if len(folders) > 0 {
-		return folders[0].Uid, nil
-	}
-	return c.createFolder(name)
-}
-
-type apiDashboard struct {
-	FolderUid string      `json:"folderUid"`
-	Overwrite bool        `json:"overwrite"`
-	Dashboard interface{} `json:"dashboard"`
-}
-
-type apiDashbaordResp struct {
-	Url string `json:"url"`
+	return newFolderResp.Payload.UID, nil
 }
 
 func (c *client) UpsertDashboard(folderUid string, dashboard dashboard.Dashboard) (string, error) {
-	dashboard.Id = cog.ToPtr(int64(0)) // 0 means new dashboard
-	data, err := json.Marshal(apiDashboard{FolderUid: folderUid, Overwrite: true, Dashboard: dashboard})
+	dashboard.Uid = cog.ToPtr(slug.Make(*dashboard.Title))
+	resp, err := c.grafanaCli.Dashboards.PostDashboard(&models.SaveDashboardCommand{
+		FolderUID: folderUid,
+		Overwrite: true,
+		Dashboard: dashboard,
+	})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error saving dashboard: %w", err)
 	}
-	resp, err := c.cli.Post(c.url+"/api/dashboards/db", "application/json", bytes.NewReader(data))
-	if err != nil {
-		return "", err
-	}
-	if resp.StatusCode != 200 {
-		err, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("%s %s", resp.Status, err)
-	}
-	var dashboardResp apiDashbaordResp
-	if err := json.NewDecoder(resp.Body).Decode(&dashboardResp); err != nil {
-		return "", err
+	if resp == nil {
+		return "", fmt.Errorf("error saving dashboard: response is nil")
 	}
 	u, err := url.Parse(c.url)
 	if err != nil {
 		return "", err
 	}
-	u.Path = dashboardResp.Url
+	u.Path = *resp.Payload.URL
 	return u.String(), nil
 }
