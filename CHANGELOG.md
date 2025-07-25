@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2025-07-25
 ### Changed
  - Switched from custom client to the grfana-openapi client https://github.com/grafana/grafana-openapi-client-go
    - Should fix weird issus with using different folders
@@ -14,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - This may lead to some changes in the generated dashboards, please report any issues you encounter.
    - Formerly not working heatmap panel should now work correctly now.
  - Upgraded to Go 1.24
+
+### Fixed
+ - The `--version` flag now correctly prints the version, commit and date of the build
 
 ## [2.2.0] - 2023-07-14
 ### Added
