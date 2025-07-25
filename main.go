@@ -9,7 +9,10 @@ import (
 )
 
 var (
-	Version = "development"
+	// Set by goreleaser during the build, see https://goreleaser.com/cookbooks/using-main.version/
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
 )
 
 type Context struct {
@@ -102,7 +105,7 @@ func main() {
 		rootLogger.SetLevel(logrus.DebugLevel)
 	}
 	if CLI.Version {
-		fmt.Println("Autograf version: " + Version)
+		fmt.Println("Autograf version: " + version + " (commit: " + commit + ", date: " + date + ")")
 		os.Exit(0)
 	}
 	CLI.grafanaToken = os.Getenv("GRAFANA_TOKEN")
