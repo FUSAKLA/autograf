@@ -115,7 +115,9 @@ func newHeatmapPanel(dataSource dashboard.DataSourceRef, selector string, metric
 			Unit(string(metric.Unit)),
 		).
 		CellGap(1).
-		CellValues(heatmap.NewCellValuesBuilder().Unit("number")).
+		CellValues(heatmap.NewCellValuesBuilder().
+			Unit(string(metric.Unit)),
+		).
 		Span(uint32(metric.Config.Width)).
 		Height(uint32(metric.Config.Height * panelHeightCoeficient))
 
